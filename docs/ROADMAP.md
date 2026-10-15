@@ -2,23 +2,25 @@
 
 ## Faza 0 – tehnična osnova
 - ASP.NET Core 8 MVC
-- PostgreSQL + EF Core
+- Microsoft SQL Server / MSSQL + EF Core
 - Identity uporabniški model
 - osnovni responsive UI
 - domenski model za zbirke, predmete, slike, osebno evidenco in menjave
 - začetni matching algoritem
-- GitHub Actions build
+- GitHub Actions build in hosting publish paket
 
 ## Faza 1 – uporabniški računi in zbirke
-- registracija, prijava, odjava, pozabljeno geslo
+- registracija, prijava in odjava
 - javno prikazno ime, lokacija in načini menjave
 - katalog albumov/zbirateljskih serij
 - podrobnosti zbirke, glavna slika in galerija
+- dodajanje, urejanje in brisanje lastnih zbirk
+- lokalna shramba slik za Windows/IIS gostovanje
+
+## Faza 2 – predmeti in Moja zbirka
 - predmeti z uradno ali interno oznako
 - dodatne slike predmeta (spredaj/zadaj/spodaj)
 - variante predmetov
-
-## Faza 2 – Moja zbirka
 - Imam / Iščem / Za menjavo
 - količina dvojnikov
 - hitro množično urejanje oštevilčenih albumov
@@ -45,10 +47,12 @@
 - uporabniki, prijave vsebine in moderacija
 
 ## Faza 6 – produkcija
-- objektna hramba slik (S3 kompatibilno)
+- Windows/IIS/Plesk deployment na ASP.NET Core 8
+- MSSQL 2022 produkcijska baza
 - potrjevanje e-pošte in ponastavitev gesla
 - rate limiting, audit log, anti-spam
-- varnostne kopije PostgreSQL in slik
+- varnostne kopije MSSQL baze in `wwwroot/uploads`
+- po potrebi kasnejša objektna hramba slik
 - GDPR: zasebnost, izvoz in izbris računa
 - staging + production deployment
 - monitoring in health checks

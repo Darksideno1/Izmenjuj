@@ -16,3 +16,12 @@ jobs:
         run: dotnet restore Izmenjuj.sln
       - name: Build
         run: dotnet build Izmenjuj.sln --configuration Release --no-restore
+      - name: Publish for Windows/IIS hosting
+        run: dotnet publish src/Izmenjuj.Web/Izmenjuj.Web.csproj --configuration Release --no-restore --output ./publish
+      - name: Upload hosting package
+        uses: actions/upload-artifact@v4
+        with:
+          name: izmenjuj-windows-hosting
+          path: ./publish
+          if-no-files-found: error
+          retention-days: 14

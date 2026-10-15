@@ -1,13 +1,12 @@
 services:
-  postgres:
-    image: postgres:16-alpine
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      POSTGRES_DB: izmenjuj
-      POSTGRES_USER: izmenjuj
-      POSTGRES_PASSWORD: izmenjuj_dev
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
     ports:
-      - "5432:5432"
+      - "1433:1433"
     volumes:
-      - izmenjuj_pg:/var/lib/postgresql/data
+      - izmenjuj_sql:/var/opt/mssql
 volumes:
-  izmenjuj_pg:
+  izmenjuj_sql:
