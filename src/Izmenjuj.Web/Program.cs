@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Port=5432;Database=izmenjuj;Username=izmenjuj;Password=izmenjuj_dev";
+    ?? "Server=(localdb)\\MSSQLLocalDB;Database=Izmenjuj;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -32,16 +32,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
-
-var storageProvider = builder.Configuration["Storage:Provider"];
-if (string.Equals(storageProvider, "Supabase", StringComparison.OrdinalIgnoreCase))
-{
-    builder.Services.AddHttpClient<IImageStorage, SupabaseImageStorage>();
-}
-else
-{
-    builder.Services.AddScoped<IImageStorage, LocalImageStorage>();
-}
+builder.Services.AddScoped<IImageStorage, LocalImageStorage>();
 
 var app = builder.Build();
 
