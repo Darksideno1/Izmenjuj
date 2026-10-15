@@ -35,6 +35,12 @@ public static class DatabaseBootstrap
             }
 
             command.CommandText = """
+                IF COL_LENGTH(N'dbo.Collections', N'ShowItemImages') IS NULL
+                BEGIN
+                    ALTER TABLE [dbo].[Collections]
+                    ADD [ShowItemImages] bit NOT NULL CONSTRAINT [DF_Collections_ShowItemImages] DEFAULT (0);
+                END;
+
                 IF OBJECT_ID(N'[dbo].[TradeMessages]', N'U') IS NULL
                 BEGIN
                     CREATE TABLE [dbo].[TradeMessages] (
