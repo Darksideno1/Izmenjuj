@@ -1,0 +1,21 @@
+@model bool
+@{
+    ViewData["Title"] = "Potrditev e-pošte";
+}
+<section class="auth-wrap">
+    <div class="auth-card">
+        <div class="page-kicker">RAČUN</div>
+        @if (Model)
+        {
+            <h1>E-pošta je potrjena</h1>
+            <p class="muted">Račun je aktiviran. Zdaj se lahko prijaviš.</p>
+            <p class="auth-footer"><a class="primary button" asp-action="Login">Prijava</a></p>
+        }
+        else
+        {
+            <h1>Povezava ni veljavna</h1>
+            <p class="muted">Povezava je lahko potekla ali je bila že uporabljena. Na prijavni strani lahko zahtevaš novo potrditveno sporočilo.</p>
+            <p class="auth-footer"><a class="secondary button" asp-action="Login">Nazaj na prijavo</a></p>
+        }
+    </div>
+</section>
