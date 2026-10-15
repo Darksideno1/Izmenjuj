@@ -1,0 +1,20 @@
+@model AdminMergeItemsViewModel
+@{
+    ViewData["Title"] = "ADMIN – združi dvojnika";
+}
+
+<section class="page-head">
+    <div><div class="page-kicker">ADMIN · ZDRUŽEVANJE</div><h1>@Model.CollectionTitle</h1><p>Izvorni predmet bo odstranjen, njegove evidence, vrstice menjav in slike pa bodo prenesene na ciljni predmet.</p></div>
+    <a class="secondary button" asp-action="Collections">Nazaj na zbirke</a>
+</section>
+
+<form class="panel form-card narrow admin-merge-form" asp-action="MergeItems" method="post">
+    <input asp-for="CollectionId" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="validation"></div>
+    <div class="form-grid">
+        <label><span>Izvorni dvojnik – ta bo odstranjen</span><select asp-for="SourceItemId"><option value="">Izberi predmet</option>@foreach (var item in Model.Items) { <option value="@item.Id">@item.Label</option> }</select></label>
+        <label><span>Ciljni predmet – ta ostane</span><select asp-for="TargetItemId"><option value="">Izberi predmet</option>@foreach (var item in Model.Items) { <option value="@item.Id">@item.Label</option> }</select></label>
+    </div>
+    <div class="admin-warning"><strong>Pred združitvijo preveri izbiro.</strong><p>Operacija ohrani podatkovne povezave, vendar je namenjena samo resničnim dvojnikom istega zbirateljskega predmeta.</p></div>
+    <div class="form-actions"><button class="danger-button" type="submit">Združi predmeta</button></div>
+</form>
