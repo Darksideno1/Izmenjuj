@@ -108,7 +108,9 @@ public sealed class MatchesController(
             new MatchInput(me.Id, myWanted, myForTrade),
             candidateInputs);
 
-        var myItems = myRows.ToDictionary(x => x.CollectibleItemId, x => x.Item);
+        var myItems = myRows
+            .GroupBy(x => x.CollectibleItemId)
+            .ToDictionary(x => x.Key, x => x.First().Item);
 
         foreach (var result in results)
         {
@@ -118,7 +120,9 @@ public sealed class MatchesController(
             }
 
             var candidate = rows[0].User;
-            var candidateItems = rows.ToDictionary(x => x.CollectibleItemId, x => x.Item);
+            var candidateItems = rows
+                .GroupBy(x => x.CollectibleItemId)
+                .ToDictionary(x => x.Key, x => x.First().Item);
 
             var match = new UserMatchViewModel
             {
