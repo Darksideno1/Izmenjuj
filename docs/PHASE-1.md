@@ -10,10 +10,10 @@ V tej fazi so implementirani:
 - naslovna slika zbirke,
 - galerija dodatnih slik,
 - osnutek ali javna objava,
-- lokalna shramba slik za razvoj,
-- Supabase Storage za gostovan test,
-- PostgreSQL bootstrap ob prvem zagonu,
-- Docker/Render konfiguracija za javni test.
+- lokalna shramba slik v `wwwroot/uploads`,
+- Microsoft SQL Server / MSSQL podatkovni sloj,
+- SQL Server LocalDB za lokalni Windows razvoj,
+- priprava za ASP.NET Core 8 na Windows/IIS/Plesk gostovanju.
 
 ## Še ni del Faze 1
 
