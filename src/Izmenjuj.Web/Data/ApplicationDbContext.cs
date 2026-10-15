@@ -17,6 +17,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<TradeMessage> TradeMessages => Set<TradeMessage>();
     public DbSet<TradeEvent> TradeEvents => Set<TradeEvent>();
     public DbSet<TradeRating> TradeRatings => Set<TradeRating>();
+    public DbSet<UserBlock> UserBlocks => Set<UserBlock>();
+    public DbSet<UserReport> UserReports => Set<UserReport>();
+    public DbSet<UserModeration> UserModerations => Set<UserModeration>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -81,5 +84,24 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         builder.Entity<TradeRating>()
             .HasIndex(x => new { x.TradeId, x.FromUserId })
             .IsUnique();
+
+        builder.Entity<UserBlock>()
+            .HasIndex(x => new { x.BlockerUserId, x.BlockedUserId })
+            .IsUnique();
+
+        builder.Entity<UserBlock>()
+            .HasIndex(x => x.BlockedUserId);
+
+        builder.Entity<UserReport>()
+            .HasIndex(x => new { x.Status, x.CreatedUtc });
+
+        builder.Entity<UserReport>()
+            .HasIndex(x => x.TargetUserId);
+
+        builder.Entity<UserModeration>()
+            .HasKey(x => x.UserId);
+
+        builder.Entity<UserModeration>()
+            .HasIndex(x => x.IsSuspended);
     }
 }

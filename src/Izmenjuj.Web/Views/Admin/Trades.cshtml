@@ -1,0 +1,37 @@
+@model AdminTradesViewModel
+@{
+    ViewData["Title"] = "ADMIN – menjave";
+}
+
+<section class="page-head">
+    <div><div class="page-kicker">ADMIN · MENJAVE</div><h1>Pregled menjav</h1><p>Read-only pregled poteka menjav za moderiranje in podporo uporabnikom.</p></div>
+</section>
+
+<div class="admin-status-tabs">
+    <a class="@(Model.Status is null ? "active" : "")" asp-action="Trades">Vse</a>
+    <a class="@(Model.Status == TradeStatus.Proposed ? "active" : "")" asp-action="Trades" asp-route-status="Proposed">Predlogi</a>
+    <a class="@(Model.Status == TradeStatus.Accepted ? "active" : "")" asp-action="Trades" asp-route-status="Accepted">Sprejete</a>
+    <a class="@(Model.Status == TradeStatus.Completed ? "active" : "")" asp-action="Trades" asp-route-status="Completed">Zaključene</a>
+    <a class="@(Model.Status == TradeStatus.Rejected ? "active" : "")" asp-action="Trades" asp-route-status="Rejected">Zavrnjene</a>
+    <a class="@(Model.Status == TradeStatus.Cancelled ? "active" : "")" asp-action="Trades" asp-route-status="Cancelled">Preklicane</a>
+</div>
+
+<div class="panel admin-table-wrap">
+    <table class="admin-table">
+        <thead><tr><th>Udeleženca</th><th>Status</th><th>Količina predmetov</th><th>Sporočila</th><th>Začetek</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var row in Model.Rows)
+        {
+            <tr>
+                <td><strong>@row.ProposerName → @row.RecipientName</strong></td>
+                <td><span class="admin-pill status-@row.Status.ToString().ToLowerInvariant()">@row.Status</span></td>
+                <td>@row.LineQuantity</td>
+                <td>@row.MessageCount</td>
+                <td>@row.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</td>
+                <td><a class="secondary button" asp-action="Trade" asp-route-id="@row.Id">Preglej</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (Model.Rows.Count == 0) { <div class="admin-empty">Ni menjav v izbranem stanju.</div> }
+</div>

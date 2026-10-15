@@ -1,14 +1,18 @@
+using Izmenjuj.Web.Data;
 using Izmenjuj.Web.Domain;
 using Izmenjuj.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Izmenjuj.Web.Controllers;
 
 public sealed class AccountController(
     UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : Controller
+    SignInManager<ApplicationUser> signInManager,
+    ApplicationDbContext db,
+    IConfiguration configuration) : Controller
 {
     [AllowAnonymous]
     [HttpGet]
@@ -38,10 +42,11 @@ public sealed class AccountController(
             return View(model);
         }
 
+        var email = model.Email.Trim();
         var user = new ApplicationUser
         {
-            UserName = model.Email.Trim(),
-            Email = model.Email.Trim(),
+            UserName = email,
+            Email = email,
             DisplayName = model.DisplayName.Trim(),
             City = string.IsNullOrWhiteSpace(model.City) ? null : model.City.Trim(),
             TradesByMail = model.TradesByMail,
@@ -58,6 +63,13 @@ public sealed class AccountController(
             return View(model);
         }
 
+        var adminEmail = configuration["Admin:Email"]?.Trim();
+        if (!string.IsNullOrWhiteSpace(adminEmail)
+            && string.Equals(adminEmail, email, StringComparison.OrdinalIgnoreCase))
+        {
+            await userManager.AddToRoleAsync(user, "Admin");
+        }
+
         await signInManager.SignInAsync(user, isPersistent: false);
         TempData["Success"] = "Račun je ustvarjen. Dobrodošel na Izmenjuj.si!";
         return LocalRedirect(returnUrl ?? Url.Action("Index", "Collections")!);
@@ -65,13 +77,14 @@ public sealed class AccountController(
 
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
+    public IActionResult Login(string? returnUrl = null, bool suspended = false)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectToAction(nameof(Profile));
         }
 
+        ViewData["Suspended"] = suspended;
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
@@ -85,8 +98,17 @@ public sealed class AccountController(
             return View(model);
         }
 
+        var email = model.Email.Trim();
+        var user = await userManager.FindByEmailAsync(email);
+        if (user is not null && await db.UserModerations.AsNoTracking()
+                .AnyAsync(x => x.UserId == user.Id && x.IsSuspended))
+        {
+            ModelState.AddModelError(string.Empty, "Ta račun je administrativno suspendiran.");
+            return View(model);
+        }
+
         var result = await signInManager.PasswordSignInAsync(
-            model.Email.Trim(), model.Password, model.RememberMe, lockoutOnFailure: true);
+            email, model.Password, model.RememberMe, lockoutOnFailure: true);
 
         if (!result.Succeeded)
         {

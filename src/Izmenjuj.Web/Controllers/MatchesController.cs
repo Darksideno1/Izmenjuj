@@ -72,12 +72,24 @@ public sealed class MatchesController(
             return View(model);
         }
 
+        var blockedUserIds = await db.UserBlocks.AsNoTracking()
+            .Where(x => x.BlockerUserId == me.Id || x.BlockedUserId == me.Id)
+            .Select(x => x.BlockerUserId == me.Id ? x.BlockedUserId : x.BlockerUserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var suspendedUserIds = await db.UserModerations.AsNoTracking()
+            .Where(x => x.IsSuspended)
+            .Select(x => x.UserId)
+            .ToListAsync(cancellationToken);
+
         var candidateQuery = db.UserInventories
             .AsNoTracking()
             .Include(x => x.User)
             .Include(x => x.Item)
                 .ThenInclude(x => x.Collection)
             .Where(x => x.UserId != me.Id
+                        && !blockedUserIds.Contains(x.UserId)
+                        && !suspendedUserIds.Contains(x.UserId)
                         && x.Quantity > 0
                         && x.Item.Collection.IsPublished
                         && (x.State == InventoryState.Wanted || x.State == InventoryState.ForTrade));

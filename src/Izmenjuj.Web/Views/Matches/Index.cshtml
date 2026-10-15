@@ -1,7 +1,10 @@
 @model MatchIndexViewModel
 @{
     ViewData["Title"] = "Ujemanja";
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
+
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
 
 <section class="page-head match-page-head">
     <div>
@@ -128,7 +131,11 @@ else
 
                 <footer class="smart-match-footer">
                     <span>Predlagana osnova menjave: izberi do <strong>@match.BalancedTradeCount</strong> predmetov na vsaki strani.</span>
-                    <a class="primary button" asp-controller="Trades" asp-action="Create" asp-route-candidateUserId="@match.UserId">Predlagaj menjavo</a>
+                    <div class="match-user-actions">
+                        <a class="primary button" asp-controller="Trades" asp-action="Create" asp-route-candidateUserId="@match.UserId">Predlagaj menjavo</a>
+                        <a class="secondary button" asp-controller="Moderation" asp-action="Report" asp-route-userId="@match.UserId">Prijavi</a>
+                        <form asp-controller="Moderation" asp-action="Block" method="post"><input type="hidden" name="userId" value="@match.UserId" /><input type="hidden" name="returnUrl" value="@returnUrl" /><button class="secondary button" type="submit">Blokiraj</button></form>
+                    </div>
                 </footer>
             </article>
         }

@@ -1,0 +1,48 @@
+@model AdminUsersViewModel
+@{
+    ViewData["Title"] = "ADMIN – uporabniki";
+}
+
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+@if (TempData["Error"] is string error) { <div class="notice trade-error">@error</div> }
+
+<section class="page-head">
+    <div><div class="page-kicker">ADMIN · UPORABNIKI</div><h1>Uporabniki</h1><p>Pregled računov, prijav in administratorskih suspenzij.</p></div>
+</section>
+
+<form class="panel admin-filter-bar" method="get">
+    <input name="q" value="@Model.Query" placeholder="Išči po imenu, e-pošti ali kraju" />
+    <button class="primary button" type="submit">Išči</button>
+    <a class="secondary button" asp-action="Users">Počisti</a>
+</form>
+
+<div class="panel admin-table-wrap">
+    <table class="admin-table">
+        <thead><tr><th>Uporabnik</th><th>E-pošta</th><th>Kraj</th><th>Odprte prijave</th><th>Status</th><th>Registracija</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var row in Model.Rows)
+        {
+            <tr>
+                <td><strong>@row.DisplayName</strong>@if (row.IsAdmin) { <small class="admin-role">ADMIN</small> }</td>
+                <td>@row.Email</td>
+                <td>@(row.City ?? "—")</td>
+                <td>@if (row.OpenReports > 0) { <a asp-action="Reports" class="report-count">@row.OpenReports</a> } else { <span>0</span> }</td>
+                <td><span class="admin-pill @(row.IsSuspended ? "suspended" : "published")">@(row.IsSuspended ? "Suspendiran" : "Aktiven")</span></td>
+                <td>@row.CreatedUtc.ToLocalTime().ToString("d. M. yyyy")</td>
+                <td>
+                    @if (!row.IsAdmin)
+                    {
+                        <form class="admin-suspend-form" asp-action="SetSuspended" method="post">
+                            <input type="hidden" name="UserId" value="@row.Id" />
+                            <input type="hidden" name="Suspended" value="@(!row.IsSuspended)" />
+                            <input name="Note" maxlength="1000" placeholder="Opomba administratorja (neobvezno)" />
+                            <button class="@(row.IsSuspended ? "secondary" : "trade-reject") button" type="submit">@(row.IsSuspended ? "Ponovno aktiviraj" : "Suspendiraj")</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (Model.Rows.Count == 0) { <div class="admin-empty">Ni uporabnikov, ki bi ustrezali iskanju.</div> }
+</div>

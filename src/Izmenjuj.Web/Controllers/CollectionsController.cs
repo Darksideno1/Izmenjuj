@@ -15,35 +15,49 @@ public sealed class CollectionsController(
     IImageStorage imageStorage) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(string? q, CancellationToken cancellationToken)
     {
         var userId = userManager.GetUserId(User);
+        var isAdmin = User.IsInRole("Admin");
+        q = Clean(q);
+
         var query = db.Collections
             .AsNoTracking()
             .Include(x => x.Images)
             .Include(x => x.Items)
-            .Where(x => x.IsPublished || (userId != null && x.CreatedByUserId == userId))
-            .OrderByDescending(x => x.UpdatedUtc);
+            .Where(x => x.IsPublished || isAdmin || (userId != null && x.CreatedByUserId == userId));
 
-        return View(await query.ToListAsync(cancellationToken));
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            query = query.Where(x => x.Title.Contains(q)
+                                     || (x.Subtitle != null && x.Subtitle.Contains(q))
+                                     || (x.Manufacturer != null && x.Manufacturer.Contains(q))
+                                     || x.Items.Any(i => i.Name.Contains(q)
+                                                        || (i.OfficialCode != null && i.OfficialCode.Contains(q))
+                                                        || i.InternalCode.Contains(q)));
+        }
+
+        ViewData["Query"] = q;
+        return View(await query.OrderByDescending(x => x.UpdatedUtc).ToListAsync(cancellationToken));
     }
 
     [HttpGet]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var userId = userManager.GetUserId(User);
+        var isAdmin = User.IsInRole("Admin");
         var collection = await db.Collections
             .AsNoTracking()
             .Include(x => x.Images.OrderBy(i => i.SortOrder))
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        if (collection is null || (!collection.IsPublished && collection.CreatedByUserId != userId))
+        if (collection is null || (!collection.IsPublished && collection.CreatedByUserId != userId && !isAdmin))
         {
             return NotFound();
         }
 
-        ViewData["CanEdit"] = userId != null && collection.CreatedByUserId == userId;
+        ViewData["CanEdit"] = isAdmin || (userId != null && collection.CreatedByUserId == userId);
         return View(collection);
     }
 
@@ -115,7 +129,7 @@ public sealed class CollectionsController(
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
-        var collection = await FindOwnedCollection(id, cancellationToken);
+        var collection = await FindManagedCollection(id, cancellationToken);
         if (collection is null)
         {
             return NotFound();
@@ -142,7 +156,7 @@ public sealed class CollectionsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(CollectionEditViewModel model, CancellationToken cancellationToken)
     {
-        var collection = await FindOwnedCollection(model.Id, cancellationToken);
+        var collection = await FindManagedCollection(model.Id, cancellationToken);
         if (collection is null)
         {
             return NotFound();
@@ -202,7 +216,7 @@ public sealed class CollectionsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteImage(Guid id, Guid imageId, CancellationToken cancellationToken)
     {
-        var collection = await FindOwnedCollection(id, cancellationToken);
+        var collection = await FindManagedCollection(id, cancellationToken);
         if (collection is null)
         {
             return NotFound();
@@ -226,7 +240,7 @@ public sealed class CollectionsController(
     [HttpGet]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var collection = await FindOwnedCollection(id, cancellationToken);
+        var collection = await FindManagedCollection(id, cancellationToken);
         return collection is null ? NotFound() : View(collection);
     }
 
@@ -235,10 +249,18 @@ public sealed class CollectionsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
-        var collection = await FindOwnedCollection(id, cancellationToken);
+        var collection = await FindManagedCollection(id, cancellationToken);
         if (collection is null)
         {
             return NotFound();
+        }
+
+        var itemIds = collection.Items.Select(x => x.Id).ToList();
+        if (itemIds.Count > 0 && (await db.UserInventories.AnyAsync(x => itemIds.Contains(x.CollectibleItemId), cancellationToken)
+                                 || await db.TradeLines.AnyAsync(x => itemIds.Contains(x.CollectibleItemId), cancellationToken)))
+        {
+            TempData["Error"] = "Zbirke ni mogoče izbrisati, ker so njeni predmeti že uporabljeni v osebnih evidencah ali menjavah. Zbirko raje skrij.";
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         await imageStorage.DeleteAsync(collection.CoverImagePath, cancellationToken);
@@ -259,10 +281,10 @@ public sealed class CollectionsController(
         db.Collections.Remove(collection);
         await db.SaveChangesAsync(cancellationToken);
         TempData["Success"] = "Zbirka je izbrisana.";
-        return RedirectToAction(nameof(Index));
+        return User.IsInRole("Admin") ? RedirectToAction("Collections", "Admin") : RedirectToAction(nameof(Index));
     }
 
-    private async Task<Collection?> FindOwnedCollection(Guid id, CancellationToken cancellationToken)
+    private async Task<Collection?> FindManagedCollection(Guid id, CancellationToken cancellationToken)
     {
         var userId = userManager.GetUserId(User);
         if (userId is null)
@@ -270,11 +292,12 @@ public sealed class CollectionsController(
             return null;
         }
 
+        var isAdmin = User.IsInRole("Admin");
         return await db.Collections
             .Include(x => x.Images)
             .Include(x => x.Items)
                 .ThenInclude(x => x.Images)
-            .FirstOrDefaultAsync(x => x.Id == id && x.CreatedByUserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == id && (isAdmin || x.CreatedByUserId == userId), cancellationToken);
     }
 
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

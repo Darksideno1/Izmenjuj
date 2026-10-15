@@ -1,0 +1,19 @@
+@model AdminBulkItemsViewModel
+@{
+    ViewData["Title"] = "ADMIN – množični vnos";
+}
+
+<section class="page-head">
+    <div><div class="page-kicker">ADMIN · MNOŽIČNI VNOS</div><h1>@Model.CollectionTitle</h1><p>Vsaka vrstica: <code>oznaka;naziv;varianta</code>. Varianta je neobvezna. Podprti so tudi tabulator in znak <code>|</code>.</p></div>
+    <a class="secondary button" asp-action="Collections">Nazaj na zbirke</a>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.ResultMessage)) { <div class="notice success">@Model.ResultMessage</div> }
+
+<form class="panel admin-bulk-form" asp-action="BulkItems" method="post">
+    <input asp-for="CollectionId" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="validation"></div>
+    <label><span>Predmeti</span><textarea asp-for="Data" rows="20" placeholder="1;Prvi predmet&#10;2;Drugi predmet;Posebna varianta"></textarea><small asp-validation-for="Data"></small></label>
+    <p class="muted">Če uradna oznaka že obstaja, se naziv in varianta posodobita. Zato lahko isti seznam varno uvoziš ponovno.</p>
+    <div class="form-actions"><button class="primary button" type="submit">Uvozi / posodobi</button></div>
+</form>

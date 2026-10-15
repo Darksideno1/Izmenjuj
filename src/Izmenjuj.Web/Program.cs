@@ -22,6 +22,11 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+});
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -30,7 +35,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<UserSafetyFilter>();
+builder.Services.AddControllersWithViews(options => options.Filters.AddService<UserSafetyFilter>());
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 builder.Services.AddScoped<IImageStorage, LocalImageStorage>();
 
@@ -55,8 +61,26 @@ app.UseAuthorization();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var services = scope.ServiceProvider;
+    var db = services.GetRequiredService<ApplicationDbContext>();
     await DatabaseBootstrap.InitializeAsync(db);
+
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+    }
+
+    var adminEmail = builder.Configuration["Admin:Email"]?.Trim();
+    if (!string.IsNullOrWhiteSpace(adminEmail))
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var admin = await userManager.FindByEmailAsync(adminEmail);
+        if (admin is not null && !await userManager.IsInRoleAsync(admin, "Admin"))
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
+    }
 }
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", app = "Izmenjuj.si" }));

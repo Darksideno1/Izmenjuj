@@ -1,0 +1,51 @@
+@model AdminCollectionsViewModel
+@{
+    ViewData["Title"] = "ADMIN – zbirke";
+}
+
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+@if (TempData["Error"] is string error) { <div class="notice trade-error">@error</div> }
+
+<section class="page-head">
+    <div><div class="page-kicker">ADMIN · KATALOG</div><h1>Zbirke in predmeti</h1><p>Upravljanje javnosti, vsebine in administrativnih orodij zbirke.</p></div>
+    <a class="primary button" asp-controller="Collections" asp-action="Create">＋ Nova zbirka</a>
+</section>
+
+<form class="panel admin-filter-bar" method="get">
+    <input name="q" value="@Model.Query" placeholder="Išči po naslovu, podnaslovu ali proizvajalcu" />
+    <select name="published">
+        <option value="">Vse zbirke</option>
+        @if (Model.Published == true) { <option value="true" selected>Samo objavljene</option> } else { <option value="true">Samo objavljene</option> }
+        @if (Model.Published == false) { <option value="false" selected>Samo skrite</option> } else { <option value="false">Samo skrite</option> }
+    </select>
+    <button class="primary button" type="submit">Filtriraj</button>
+    <a class="secondary button" asp-action="Collections">Počisti</a>
+</form>
+
+<div class="panel admin-table-wrap">
+    <table class="admin-table">
+        <thead><tr><th>Zbirka</th><th>Tip</th><th>Lastnik</th><th>Predmeti</th><th>Status</th><th>Posodobljeno</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var row in Model.Rows)
+        {
+            <tr>
+                <td><strong>@row.Title</strong>@if (!string.IsNullOrWhiteSpace(row.Subtitle)) { <small>@row.Subtitle</small> }</td>
+                <td>@row.Type</td>
+                <td>@row.OwnerName</td>
+                <td>@row.ItemCount</td>
+                <td><span class="admin-pill @(row.IsPublished ? "published" : "hidden")">@(row.IsPublished ? "Objavljeno" : "Skrito")</span></td>
+                <td>@row.UpdatedUtc.ToLocalTime().ToString("d. M. yyyy")</td>
+                <td class="admin-actions-cell">
+                    <a asp-controller="Collections" asp-action="Details" asp-route-id="@row.Id">Odpri</a>
+                    <a asp-controller="Collections" asp-action="Edit" asp-route-id="@row.Id">Uredi</a>
+                    <a asp-controller="Items" asp-action="Create" asp-route-collectionId="@row.Id">＋ predmet</a>
+                    <a asp-action="BulkItems" asp-route-collectionId="@row.Id">Množični vnos</a>
+                    @if (row.ItemCount > 1) { <a asp-action="MergeItems" asp-route-collectionId="@row.Id">Združi dvojnika</a> }
+                    <form asp-action="ToggleCollectionPublication" method="post"><input type="hidden" name="id" value="@row.Id" /><button type="submit">@(row.IsPublished ? "Skrij" : "Objavi")</button></form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (Model.Rows.Count == 0) { <div class="admin-empty">Ni zbirk, ki bi ustrezale filtru.</div> }
+</div>

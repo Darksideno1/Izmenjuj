@@ -4,7 +4,7 @@ Sodobna spletna platforma za zbiratelje in izmenjavo sličic, kart, figuric ter 
 
 ## Cilj projekta
 
-Izmenjuj.si omogoča uporabnikom, da vodijo svoje zbirke, označijo kaj imajo, kaj iščejo in kaj ponujajo za menjavo. Sistem nato samodejno poišče najboljša ujemanja med uporabniki.
+Izmenjuj.si omogoča uporabnikom, da vodijo svoje zbirke, označijo kaj imajo, kaj iščejo in kaj ponujajo za menjavo. Sistem samodejno poišče obojestranska ujemanja, uporabnika pa lahko iz ujemanja pripravita konkreten predlog menjave.
 
 Projekt je zasnovan tudi za zbirke brez uradnega oštevilčenja: vsak predmet lahko uporablja naziv, interno oznako, glavno sliko in dodatno galerijo za vizualno identifikacijo.
 
@@ -25,19 +25,18 @@ Na Windows računalniku je privzeta povezava nastavljena na SQL Server LocalDB (
 
 ## Ciljno gostovanje
 
-Projekt je pripravljen za klasično Windows gostovanje z ASP.NET Core 8, IIS/Plesk in MSSQL 2022. Produkcijski connection string se nastavi na gostovanju in se ne shranjuje v GitHub.
+Ciljno okolje je Domenca.com Windows gostovanje z .NET 8, IIS 10 / ASP.NET Core Module V2, Plesk in MSSQL 2022. Produkcijski connection string in administratorska konfiguracija se nastavita samo na gostovanju in se ne shranjujeta v GitHub.
 
 ## Razvojne faze
 
-1. Osnova aplikacije, podatkovni model in UI sistem
-2. Registracija/prijava in uporabniški profil
-3. Albumi/zbirke in galerije slik
-4. Predmeti, variante in osebna evidenca (imam / iščem / za menjavo)
-5. Samodejno iskanje ujemanj
-6. Predlogi menjav in zasebna sporočila
-7. Administracija in moderacija
-8. Obvestila, ocene, varnost in produkcijska namestitev
+- **Faza 0 – osnova:** aplikacija, podatkovni model, UI sistem in CI.
+- **Faza 1 – računi in zbirke:** registracija/prijava, profil, zbirke in galerije.
+- **Faza 2 – predmeti in osebna zbirka:** variante, slike, Imam / Iščem / Za menjavo, količine in napredek.
+- **Faza 3 – pametno ujemanje:** obojestranska ujemanja, rangiranje ter filtri.
+- **Faza 4 – menjave in komunikacija:** predlogi, protipredlogi, zasebna sporočila, dvostranski zaključek, zgodovina in ocene.
+- **Faza 5 – ADMIN in moderacija:** administracija kataloga/uporabnikov, množični vnos, združevanje dvojnikov, prijave, blokade, suspenzije in read-only pregled menjav.
+- **Faza 6 – produkcijska priprava:** e-poštna potrditev/reset gesla, zaščite, backup/restore, zasebnost/GDPR, monitoring, končni test in namestitev.
 
 ## Status
 
-Faza 1 je implementirana. Projekt se nadaljuje na obstoječi kodi z MSSQL kot ciljno podatkovno bazo.
+Faze 0–5 so implementirane v razvojni osnovi. Ročni end-to-end test je po dogovoru odložen do funkcionalnega zaključka projekta; vsaka faza se vmes preverja z GitHub Actions Release buildom in Windows/IIS publishom.

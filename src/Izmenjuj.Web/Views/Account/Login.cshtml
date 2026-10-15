@@ -1,12 +1,17 @@
 @model LoginViewModel
 @{
     ViewData["Title"] = "Prijava";
+    var suspended = ViewData["Suspended"] as bool? == true;
 }
 <section class="auth-wrap">
     <div class="auth-card">
         <div class="page-kicker">DOBRODOŠEL NAZAJ</div>
         <h1>Prijava</h1>
         <p class="muted">Prijavi se za urejanje svojih zbirk in pripravo menjav.</p>
+        @if (suspended)
+        {
+            <div class="notice trade-error">Tvoj račun je trenutno administrativno suspendiran. Za dodatne informacije se obrni na podporo.</div>
+        }
         <form asp-action="Login" method="post" class="form-grid single">
             <input asp-for="ReturnUrl" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="validation"></div>

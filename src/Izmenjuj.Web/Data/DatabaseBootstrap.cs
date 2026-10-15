@@ -81,6 +81,52 @@ public static class DatabaseBootstrap
                     CREATE UNIQUE INDEX [IX_TradeRatings_TradeId_FromUserId] ON [dbo].[TradeRatings] ([TradeId], [FromUserId]);
                 END;
 
+                IF OBJECT_ID(N'[dbo].[UserBlocks]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [dbo].[UserBlocks] (
+                        [Id] uniqueidentifier NOT NULL,
+                        [BlockerUserId] nvarchar(450) NOT NULL,
+                        [BlockedUserId] nvarchar(450) NOT NULL,
+                        [CreatedUtc] datetime2 NOT NULL,
+                        CONSTRAINT [PK_UserBlocks] PRIMARY KEY ([Id])
+                    );
+                    CREATE UNIQUE INDEX [IX_UserBlocks_BlockerUserId_BlockedUserId] ON [dbo].[UserBlocks] ([BlockerUserId], [BlockedUserId]);
+                    CREATE INDEX [IX_UserBlocks_BlockedUserId] ON [dbo].[UserBlocks] ([BlockedUserId]);
+                END;
+
+                IF OBJECT_ID(N'[dbo].[UserReports]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [dbo].[UserReports] (
+                        [Id] uniqueidentifier NOT NULL,
+                        [ReporterUserId] nvarchar(450) NOT NULL,
+                        [TargetUserId] nvarchar(450) NOT NULL,
+                        [TradeId] uniqueidentifier NULL,
+                        [Reason] nvarchar(120) NOT NULL,
+                        [Details] nvarchar(2000) NULL,
+                        [Status] int NOT NULL,
+                        [CreatedUtc] datetime2 NOT NULL,
+                        [ReviewedByUserId] nvarchar(450) NULL,
+                        [ReviewedUtc] datetime2 NULL,
+                        [ResolutionNote] nvarchar(1000) NULL,
+                        CONSTRAINT [PK_UserReports] PRIMARY KEY ([Id])
+                    );
+                    CREATE INDEX [IX_UserReports_Status_CreatedUtc] ON [dbo].[UserReports] ([Status], [CreatedUtc]);
+                    CREATE INDEX [IX_UserReports_TargetUserId] ON [dbo].[UserReports] ([TargetUserId]);
+                END;
+
+                IF OBJECT_ID(N'[dbo].[UserModerations]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [dbo].[UserModerations] (
+                        [UserId] nvarchar(450) NOT NULL,
+                        [IsSuspended] bit NOT NULL,
+                        [Note] nvarchar(1000) NULL,
+                        [UpdatedUtc] datetime2 NOT NULL,
+                        [UpdatedByUserId] nvarchar(450) NULL,
+                        CONSTRAINT [PK_UserModerations] PRIMARY KEY ([UserId])
+                    );
+                    CREATE INDEX [IX_UserModerations_IsSuspended] ON [dbo].[UserModerations] ([IsSuspended]);
+                END;
+
                 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Trades_ProposerUserId_Status_CreatedUtc' AND object_id = OBJECT_ID(N'[dbo].[Trades]'))
                     CREATE INDEX [IX_Trades_ProposerUserId_Status_CreatedUtc] ON [dbo].[Trades] ([ProposerUserId], [Status], [CreatedUtc]);
 

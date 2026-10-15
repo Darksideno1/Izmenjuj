@@ -1,0 +1,19 @@
+@model UserReportInputViewModel
+@{
+    ViewData["Title"] = "Prijavi uporabnika";
+}
+
+<section class="page-head">
+    <div><div class="page-kicker">VARNOST SKUPNOSTI</div><h1>Prijavi @Model.TargetDisplayName</h1><p>Prijavo vidi samo administracija. Opiši konkreten razlog brez občutljivih podatkov, ki niso potrebni za obravnavo.</p></div>
+</section>
+
+<form class="panel form-card narrow" asp-action="Report" method="post">
+    <input asp-for="TargetUserId" type="hidden" />
+    <input asp-for="TradeId" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="validation"></div>
+    <div class="form-grid single">
+        <label><span asp-for="Reason"></span><select asp-for="Reason"><option value="">Izberi razlog</option><option>Neprimerno vedenje</option><option>Sum prevare</option><option>Spam</option><option>Težava pri menjavi</option><option>Lažni ali zavajajoči podatki</option><option>Drugo</option></select><small asp-validation-for="Reason"></small></label>
+        <label><span asp-for="Details"></span><textarea asp-for="Details" rows="7" placeholder="Kaj se je zgodilo?"></textarea><small asp-validation-for="Details"></small></label>
+        <div class="form-actions"><a class="secondary button" href="javascript:history.back()">Prekliči</a><button class="primary button" type="submit">Pošlji prijavo</button></div>
+    </div>
+</form>
