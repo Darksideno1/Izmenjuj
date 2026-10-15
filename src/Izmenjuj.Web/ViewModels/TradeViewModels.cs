@@ -1,4 +1,5 @@
 using Izmenjuj.Web.Domain;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace Izmenjuj.Web.ViewModels;
@@ -7,7 +8,7 @@ public sealed class TradeEditViewModel
 {
     public Guid? TradeId { get; set; }
     public string OtherUserId { get; set; } = string.Empty;
-    public string OtherDisplayName { get; set; } = string.Empty;
+    [ValidateNever] public string OtherDisplayName { get; set; } = string.Empty;
     public bool IsCounter { get; set; }
     public List<TradeOfferItemViewModel> MyItems { get; set; } = [];
     public List<TradeOfferItemViewModel> TheirItems { get; set; } = [];
@@ -20,11 +21,11 @@ public sealed class TradeEditViewModel
 public sealed class TradeOfferItemViewModel
 {
     public Guid ItemId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
-    public string CollectionTitle { get; set; } = string.Empty;
-    public string? Variant { get; set; }
-    public string? PrimaryImagePath { get; set; }
+    [ValidateNever] public string Name { get; set; } = string.Empty;
+    [ValidateNever] public string Code { get; set; } = string.Empty;
+    [ValidateNever] public string CollectionTitle { get; set; } = string.Empty;
+    [ValidateNever] public string? Variant { get; set; }
+    [ValidateNever] public string? PrimaryImagePath { get; set; }
     public int MaxQuantity { get; set; }
     public bool Selected { get; set; }
 
