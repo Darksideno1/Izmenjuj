@@ -1,42 +1,69 @@
-# Izmenjuj.si – brezplačno testno gostovanje
+# Izmenjuj.si – Windows gostovanje (ASP.NET Core 8 + MSSQL)
 
-Za razvojni javni test je priporočena kombinacija **Render Free + Supabase Free**.
+Ciljno produkcijsko okolje je klasično Windows gostovanje z naslednjimi predpostavkami:
 
-## 1. Supabase
+- ASP.NET Core 8 / .NET 8
+- IIS
+- Plesk
+- Microsoft SQL Server 2022 (MSSQL)
+- možnost pisanja v mapo aplikacije `wwwroot/uploads`
 
-1. Ustvari nov Supabase projekt.
-2. V Storage ustvari **public bucket** z imenom `izmenjuj-images`.
-3. V Connect / Database kopiraj PostgreSQL connection string za .NET/Npgsql.
-4. V Project Settings / API Keys kopiraj strežniški **secret key**. Tega ključa nikoli ne zapisuj v GitHub.
-5. Kopiraj tudi Project URL, npr. `https://xxxxx.supabase.co`.
+## 1. Baza MSSQL
 
-Aplikacija uporablja PostgreSQL neposredno prek Entity Framework Core. Ob prvem zagonu ustvari svoje tabele v `public` shemi, če še ne obstajajo.
+V Plesku ustvari MSSQL bazo in uporabnika baze. Nato pridobi connection string v obliki, ki jo poda ponudnik gostovanja.
 
-## 2. Render
+Produkcijskega uporabniškega imena, gesla ali connection stringa ne zapisuj v GitHub.
 
-Repo vsebuje `Dockerfile` in `render.yaml`, zato ga lahko Render zgradi neposredno iz GitHuba.
+Aplikacija pričakuje nastavitev:
 
-1. V Renderju izberi **New > Blueprint**.
-2. Poveži GitHub in izberi repozitorij `Darksideno1/Izmenjuj`.
-3. Render prebere `render.yaml` in ustvari Free Web Service.
-4. Ob ustvarjanju vnesi zahtevane skrivne okoljske spremenljivke:
+`ConnectionStrings__DefaultConnection`
 
-- `ConnectionStrings__DefaultConnection` – Supabase PostgreSQL connection string
-- `Storage__SupabaseUrl` – Supabase Project URL
-- `Storage__SupabaseSecretKey` – Supabase server-side secret key
+Če gostovanje ne omogoča okoljske spremenljivke, se connection string vnese v produkcijski `appsettings.Production.json` neposredno na strežniku in ta datoteka se ne commita v GitHub.
 
-Nastavljeni sta tudi:
+Ob prvem zagonu aplikacija preveri, ali tabela `dbo.AspNetUsers` obstaja. Če je baza prazna, ustvari začetne tabele.
 
-- `Storage__Provider=Supabase`
-- `Storage__Bucket=izmenjuj-images`
+## 2. Slike
 
-## Pomembno
+Naslovnice in galerijske slike se shranjujejo v:
 
-- Render Free se po obdobju neaktivnosti uspava, zato je prvi obisk po premoru počasnejši.
-- Ne uporabljaj lokalnega `wwwroot/uploads` za javno testno stran, ker je brezplačni Render datotečni sistem začasen.
-- Nobenega gesla, connection stringa ali Supabase secret ključa ne dodajaj v GitHub.
-- Brezplačno gostovanje je namenjeno razvoju in testiranju, ne končni produkciji.
+`wwwroot/uploads`
 
-## Lokalni razvoj
+Aplikacijski pool/IIS mora imeti dovoljenje za zapisovanje v to mapo. Mapo `uploads` je treba vključiti v redne varnostne kopije skupaj z MSSQL bazo.
 
-Lokalno je privzeto `Storage:Provider=Local`, zato se slike shranjujejo v `wwwroot/uploads`. PostgreSQL lahko zaženeš z `docker compose up -d`.
+Dovoljeni formati so JPG, PNG in WEBP; največja velikost posamezne slike je trenutno 6 MB.
+
+## 3. Publish
+
+Za gostovanje se uporablja framework-dependent .NET 8 publish. GitHub Actions preveri build; za ročni publish lahko uporabiš:
+
+`dotnet publish src/Izmenjuj.Web/Izmenjuj.Web.csproj -c Release -o publish`
+
+Vsebino mape `publish` nato naložiš v spletni koren, ki ga določi Plesk. ASP.NET Core publish ustvari potrebno IIS konfiguracijo (`web.config`).
+
+## 4. Plesk / IIS
+
+Pri nastavitvi gostovanja preveri:
+
+- aplikacija uporablja .NET 8,
+- Application Pool je nastavljen za ASP.NET Core aplikacijo,
+- HTTPS/SSL je vključen,
+- `wwwroot/uploads` ima dovoljenje za zapis,
+- domena kaže na pravo spletno mesto,
+- produkcijski MSSQL connection string je nastavljen samo na strežniku.
+
+## 5. Lokalni razvoj na Windows
+
+Privzeta razvojna baza je SQL Server LocalDB:
+
+`Server=(localdb)\\MSSQLLocalDB;Database=Izmenjuj;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True`
+
+To omogoča lokalni razvoj brez zunanjega strežnika. Alternativno je v `docker-compose.yml` pripravljen SQL Server 2022 container; geslo se poda prek okoljske spremenljivke `MSSQL_SA_PASSWORD`.
+
+## Varnostne kopije
+
+Za obnovljiv sistem je treba varnostno kopirati oba dela:
+
+1. MSSQL bazo,
+2. mapo `wwwroot/uploads`.
+
+Baza brez slik oziroma slike brez baze niso popolna varnostna kopija platforme.
