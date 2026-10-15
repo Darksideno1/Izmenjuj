@@ -15,7 +15,10 @@ var requireConfirmedAccount = builder.Configuration.GetValue(
     "Identity:RequireConfirmedAccount",
     builder.Environment.IsProduction());
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddScoped<TradeNotificationInterceptor>();
+builder.Services.AddDbContext<ApplicationDbContext>((services, options) =>
+    options.UseSqlServer(connectionString)
+        .AddInterceptors(services.GetRequiredService<TradeNotificationInterceptor>()));
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
