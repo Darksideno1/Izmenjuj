@@ -1,0 +1,48 @@
+@model AdminTradeInspectViewModel
+@{
+    ViewData["Title"] = "ADMIN – pregled menjave";
+}
+
+<section class="page-head">
+    <div><div class="page-kicker">ADMIN · READ-ONLY</div><h1>@Model.ProposerName ⇄ @Model.RecipientName</h1><p>@Model.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm") · @Model.Status</p></div>
+    <a class="secondary button" asp-action="Trades">Nazaj na menjave</a>
+</section>
+
+<div class="admin-trade-inspect-grid">
+    <section class="panel">
+        <header><h2>Predmeti</h2><span>@Model.Lines.Sum(x => x.Quantity)</span></header>
+        <div class="admin-trade-lines">
+            @foreach (var line in Model.Lines)
+            {
+                <div><strong>@line.FromUserName</strong><span>@line.ItemLabel</span><small>@line.CollectionTitle · količina @line.Quantity</small></div>
+            }
+        </div>
+    </section>
+    <section class="panel">
+        <header><h2>Zgodovina</h2><span>@Model.Events.Count</span></header>
+        <div class="trade-timeline">
+            @foreach (var entry in Model.Events)
+            {
+                <div class="timeline-entry"><i></i><div><strong>@entry.ActorName</strong> · @entry.Type@if (!string.IsNullOrWhiteSpace(entry.Note)) { <p>@entry.Note</p> }<small>@entry.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</small></div></div>
+            }
+        </div>
+    </section>
+</div>
+
+<section class="panel admin-trade-messages">
+    <header><h2>Sporočila</h2><span>@Model.Messages.Count</span></header>
+    <p class="muted">Ta pogled je namenjen izključno moderiranju. Administrator tukaj ne more pošiljati sporočil ali spreminjati statusa menjave.</p>
+    @if (Model.Messages.Count == 0)
+    {
+        <div class="admin-empty">Menjava nima sporočil.</div>
+    }
+    else
+    {
+        <div class="admin-message-list">
+            @foreach (var message in Model.Messages)
+            {
+                <article><header><strong>@message.SenderName</strong><small>@message.SentUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</small></header><p>@message.Body</p></article>
+            }
+        </div>
+    }
+</section>
