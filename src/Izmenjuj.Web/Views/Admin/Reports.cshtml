@@ -23,7 +23,7 @@
         <article class="panel admin-report-card">
             <header>
                 <div><span class="admin-pill status-@row.Status.ToString().ToLowerInvariant()">@row.Status</span><h2>@row.TargetName</h2><p>Prijavil: @row.ReporterName · @row.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</p></div>
-                @if (row.TradeId.HasValue) { <a class="secondary button" asp-controller="Trades" asp-action="Details" asp-route-id="@row.TradeId">Odpri menjavo</a> }
+                @if (row.TradeId.HasValue) { <a class="secondary button" asp-action="Trade" asp-route-id="@row.TradeId">Preglej menjavo</a> }
             </header>
             <div class="admin-report-body"><strong>@row.Reason</strong>@if (!string.IsNullOrWhiteSpace(row.Details)) { <p>@row.Details</p> }</div>
             @if (!string.IsNullOrWhiteSpace(row.ResolutionNote)) { <div class="admin-resolution"><b>Opomba ob obravnavi:</b> @row.ResolutionNote</div> }
