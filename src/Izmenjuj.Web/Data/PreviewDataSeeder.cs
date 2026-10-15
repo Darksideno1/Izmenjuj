@@ -109,11 +109,13 @@ public static class PreviewDataSeeder
             IsPublished = true,
             CreatedByUserId = demo.Id
         };
-        kinder.Items.AddRange(
+        kinder.Items.AddRange(new[]
+        {
             NewItem(kinder, null, "Modri zmaj", "Standard", "KIN-001"),
             NewItem(kinder, null, "Rdeči vitez", "Metallic", "KIN-002"),
             NewItem(kinder, null, "Čarovnica", "Standard", "KIN-003"),
-            NewItem(kinder, null, "Gozdni škrat", "Green cape", "KIN-004"));
+            NewItem(kinder, null, "Gozdni škrat", "Green cape", "KIN-004")
+        });
 
         var cards = new Collection
         {
@@ -127,14 +129,15 @@ public static class PreviewDataSeeder
             IsPublished = true,
             CreatedByUserId = demo.Id
         };
-        cards.Items.AddRange(
+        cards.Items.AddRange(new[]
+        {
             NewItem(cards, "HP-001", "Harry Potter", "Base"),
             NewItem(cards, "HP-002", "Hermione Granger", "Foil"),
-            NewItem(cards, "HP-003", "Ron Weasley", "Base"));
+            NewItem(cards, "HP-003", "Ron Weasley", "Base")
+        });
 
         db.Collections.AddRange(fifa, kinder, cards);
 
-        // Demo user: owns / can trade 003 and 014, wants 002 and 051.
         db.UserInventories.AddRange(
             Inventory(demo.Id, fifaItems[2].Id, InventoryState.Have, 2),
             Inventory(demo.Id, fifaItems[2].Id, InventoryState.ForTrade, 1),
@@ -143,7 +146,6 @@ public static class PreviewDataSeeder
             Inventory(demo.Id, fifaItems[1].Id, InventoryState.Wanted, 1),
             Inventory(demo.Id, fifaItems[5].Id, InventoryState.Wanted, 1));
 
-        // Partner has exactly the complementary inventory so Matching shows a useful result.
         db.UserInventories.AddRange(
             Inventory(partner.Id, fifaItems[1].Id, InventoryState.Have, 2),
             Inventory(partner.Id, fifaItems[1].Id, InventoryState.ForTrade, 1),
@@ -159,11 +161,13 @@ public static class PreviewDataSeeder
             Status = TradeStatus.Proposed,
             CreatedUtc = DateTime.UtcNow.AddHours(-2)
         };
-        trade.Lines.AddRange(
+        trade.Lines.AddRange(new[]
+        {
             new TradeLine { FromUserId = demo.Id, CollectibleItemId = fifaItems[2].Id, Quantity = 1 },
             new TradeLine { FromUserId = demo.Id, CollectibleItemId = fifaItems[4].Id, Quantity = 1 },
             new TradeLine { FromUserId = partner.Id, CollectibleItemId = fifaItems[1].Id, Quantity = 1 },
-            new TradeLine { FromUserId = partner.Id, CollectibleItemId = fifaItems[5].Id, Quantity = 1 });
+            new TradeLine { FromUserId = partner.Id, CollectibleItemId = fifaItems[5].Id, Quantity = 1 }
+        });
         trade.Events.Add(new TradeEvent
         {
             ActorUserId = partner.Id,
@@ -188,15 +192,23 @@ public static class PreviewDataSeeder
     }
 
     private static CollectibleItem NewItem(Collection collection, string? officialCode, string name, string? variant, string? internalCode = null)
-        => new()
+    {
+        var generated = $"{collection.Id:N}-{officialCode ?? name}";
+        if (generated.Length > 80)
+        {
+            generated = generated[..80];
+        }
+
+        return new CollectibleItem
         {
             Collection = collection,
             CollectionId = collection.Id,
             OfficialCode = officialCode,
-            InternalCode = internalCode ?? $"{collection.Id:N}-{officialCode ?? name}"[..Math.Min(80, $"{collection.Id:N}-{officialCode ?? name}".Length)],
+            InternalCode = internalCode ?? generated,
             Name = name,
             Variant = variant
         };
+    }
 
     private static UserInventory Inventory(string userId, Guid itemId, InventoryState state, int quantity)
         => new()
