@@ -4,6 +4,7 @@
 }
 <section class="page-head">
     <div><div class="page-kicker">MOJ RAČUN</div><h1>Profil</h1><p>Podatki, ki pomagajo pri iskanju primernih načinov menjave.</p></div>
+    <a class="secondary button" asp-controller="Moderation" asp-action="Blocks">Blokirani uporabniki</a>
 </section>
 <div class="form-card narrow">
     @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
