@@ -1,0 +1,14 @@
+@model CollectibleItem
+@{
+    ViewData["Title"] = "Izbriši predmet";
+}
+<section class="form-shell narrow-form">
+    <div class="page-heading"><div><span class="page-kicker">@Model.Collection.Title</span><h1>Izbriši predmet</h1><p>Predmet <strong>@Model.Name</strong> bo odstranjen iz zbirke.</p></div></div>
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="panel form-panel">
+        <div class="warning-box">S tem se odstranijo tudi njegove slike in osebne evidence uporabnikov za ta predmet.</div>
+        <div class="form-actions">
+            <button class="danger-button" type="submit">Izbriši predmet</button>
+            <a class="secondary button" asp-action="Details" asp-route-id="@Model.Id">Prekliči</a>
+        </div>
+    </form>
+</section>
