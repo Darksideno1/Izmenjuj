@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Izmenjuj.si</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">↔ <span>izmenjuj.si</span></a>
+    <label class="search"><span>⌕</span><input aria-label="Iskanje" placeholder="Išči albume, predmete, uporabnike ..." /></label>
+    <nav class="topnav"><a class="active" href="/">Domov</a><a href="#albums">Albumi</a><a href="#matches">Menjave</a><a href="#">Sporočila</a><a href="#">Profil</a></nav>
+</header>
+<div class="shell">
+    <aside class="sidebar">
+        <a class="active" href="/">⌂ <span>Domov</span></a>
+        <a href="#albums">▣ <span>Moje zbirke</span></a>
+        <a href="#matches">⇄ <span>Menjave</span></a>
+        <a href="#">◌ <span>Sporočila</span></a>
+        <a href="#">◎ <span>Skupnost</span></a>
+        <a href="#">⚙ <span>Nastavitve</span></a>
+        <div class="sidebar-spacer"></div>
+        <button class="add-button">＋ Dodaj album</button>
+    </aside>
+    <main class="content">@RenderBody()</main>
+</div>
+</body>
+</html>

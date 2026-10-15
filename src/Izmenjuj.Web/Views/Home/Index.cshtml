@@ -1,0 +1,34 @@
+@{
+    ViewData["Title"] = "Domov";
+}
+<section class="hero">
+    <div><span class="eyebrow">DOBRODOŠEL NA</span><h1>izmenjuj.si</h1><p>Zbiraj. Menjaj. Dopolni zbirko.</p><div class="hero-actions"><a class="primary" href="#albums">Razišči albume →</a><a class="secondary" href="#matches">Najdi menjave</a></div></div>
+    <div class="card-fan"><div class="sample-card sport">Šport</div><div class="sample-card nature">Živali</div><div class="sample-card fantasy">Fantazija</div></div>
+</section>
+
+<section class="stats">
+    <article><span class="stat-icon blue">▤</span><div><small>Moje zbirke</small><strong>3</strong><em>+1 ta mesec</em></div></article>
+    <article><span class="stat-icon red">□</span><div><small>Manjkajoče</small><strong>48</strong><em>12 manj kot prej</em></div></article>
+    <article><span class="stat-icon green">⇄</span><div><small>Za menjavo</small><strong>27</strong><em>6 novih</em></div></article>
+    <article><span class="stat-icon violet">◇</span><div><small>Dogovorjene menjave</small><strong>5</strong><em>2 ta teden</em></div></article>
+</section>
+
+<div class="dashboard-grid">
+<section class="panel" id="albums">
+    <header><h2>Moji albumi</h2><a href="#">Prikaži vse →</a></header>
+    <div class="album-grid">
+        <article class="album-card"><div class="cover cover-sport"><b>2026</b><span>NOGOMET</span></div><h3>Nogomet 2026</h3><p>Sličice iz sveta nogometa</p><div class="progress"><i style="width:67%"></i></div><footer><span>120 / 180</span><b>67 %</b></footer></article>
+        <article class="album-card"><div class="cover cover-animals"><b>1998</b><span>GOZDNE FIGURICE</span></div><h3>Gozdne figurice 1998</h3><p>Vizualno prepoznavanje figuric</p><div class="progress"><i style="width:50%"></i></div><footer><span>12 / 24</span><b>50 %</b></footer></article>
+        <article class="album-card"><div class="cover cover-fantasy"><b>120</b><span>FANTAZIJSKE KARTE</span></div><h3>Fantazijske karte</h3><p>Junaki, bitja in čarobni svetovi</p><div class="progress"><i style="width:15%"></i></div><footer><span>18 / 120</span><b>15 %</b></footer></article>
+    </div>
+</section>
+
+<section class="panel matches" id="matches">
+    <header><h2>Najboljša ujemanja</h2><a href="#">Poglej vse →</a></header>
+    <article class="match"><div class="avatar">MK</div><div><h3>MatejK</h3><strong>92 % ujemanje</strong><p>8 možnih menjav</p></div><button>Poglej</button></article>
+    <article class="match"><div class="avatar">N89</div><div><h3>Zbirateljka_89</h3><strong>87 % ujemanje</strong><p>6 možnih menjav</p></div><button>Poglej</button></article>
+    <article class="match"><div class="avatar">LS</div><div><h3>LukaS</h3><strong>78 % ujemanje</strong><p>4 možne menjave</p></div><button>Poglej</button></article>
+</section>
+</div>
+
+<section class="panel activity"><header><h2>Nedavna aktivnost</h2><a href="#">Prikaži vse →</a></header><div class="activity-row"><span>✉</span><p><b>AnaM</b> ti je poslala sporočilo o možni menjavi.</p><time>pred 10 min</time></div><div class="activity-row"><span>⇄</span><p>Tvoja menjava z <b>MatejK</b> je bila potrjena.</p><time>pred 5 urami</time></div></section>
