@@ -1,0 +1,70 @@
+@model CollectionInventoryViewModel
+@{
+    ViewData["Title"] = $"Moja zbirka – {Model.Collection.Title}";
+}
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+<section class="inventory-heading">
+    <div>
+        <span class="page-kicker">MOJA ZBIRKA</span>
+        <h1>@Model.Collection.Title</h1>
+        <p>Označi, kaj imaš, kaj iščeš in koliko primerkov ponujaš za menjavo.</p>
+    </div>
+    <a class="secondary button" asp-controller="Collections" asp-action="Details" asp-route-id="@Model.CollectionId">Nazaj v zbirko</a>
+</section>
+
+<section class="inventory-stats">
+    <article><small>Napredek</small><strong>@Model.CompletionPercent %</strong><div class="progress"><i style="width:@Model.CompletionPercent%"></i></div><span>@Model.OwnedItems / @Model.TotalItems predmetov</span></article>
+    <article><small>Imam</small><strong>@Model.OwnedItems</strong><span>različnih predmetov</span></article>
+    <article><small>Iščem</small><strong>@Model.WantedItems</strong><span>manjkajočih predmetov</span></article>
+    <article><small>Za menjavo</small><strong>@Model.ForTradeItems</strong><span>primerkov</span></article>
+</section>
+
+@if (Model.Rows.Count == 0)
+{
+    <section class="panel empty-state">
+        <h2>V zbirki še ni predmetov</h2>
+        <p>Ko bodo v katalog dodane sličice, karte ali figurice, jih boš lahko tukaj označil.</p>
+    </section>
+}
+else
+{
+    <form asp-action="Collection" method="post" class="inventory-form">
+        <input asp-for="CollectionId" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+        <div class="inventory-toolbar panel">
+            <div><strong>Množično urejanje</strong><span>Spremeni več vrstic in nato vse shrani z enim klikom.</span></div>
+            <button class="primary button" type="submit">Shrani evidenco</button>
+        </div>
+
+        <div class="inventory-grid">
+            @for (var i = 0; i < Model.Rows.Count; i++)
+            {
+                <article class="inventory-item-card">
+                    <input asp-for="Rows[i].ItemId" type="hidden" />
+                    <div class="inventory-item-media">
+                        @if (!string.IsNullOrWhiteSpace(Model.Rows[i].PrimaryImagePath))
+                        {
+                            <img src="@Model.Rows[i].PrimaryImagePath" alt="@Model.Rows[i].Name" />
+                        }
+                        else
+                        {
+                            <div class="item-placeholder">◇</div>
+                        }
+                    </div>
+                    <div class="inventory-item-name">
+                        <span class="item-code">@(Model.Rows[i].OfficialCode ?? Model.Rows[i].InternalCode)</span>
+                        <a asp-controller="Items" asp-action="Details" asp-route-id="@Model.Rows[i].ItemId">@Model.Rows[i].Name</a>
+                        @if (!string.IsNullOrWhiteSpace(Model.Rows[i].Variant)) { <small>@Model.Rows[i].Variant</small> }
+                    </div>
+                    <div class="inventory-controls">
+                        <label class="qty-control"><span>Imam</span><input asp-for="Rows[i].HaveQuantity" type="number" min="0" max="999" /></label>
+                        <label class="wanted-control"><input asp-for="Rows[i].Wanted" /><span>Iščem</span></label>
+                        <label class="qty-control"><span>Za menjavo</span><input asp-for="Rows[i].ForTradeQuantity" type="number" min="0" max="999" /></label>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <div class="sticky-save"><button class="primary button" type="submit">Shrani evidenco</button></div>
+    </form>
+}
