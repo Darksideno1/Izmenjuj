@@ -11,11 +11,21 @@ Projekt je zasnovan tudi za zbirke brez uradnega oštevilčenja: vsak predmet la
 ## Tehnologija
 
 - ASP.NET Core 8 MVC
-- Entity Framework Core
-- PostgreSQL
+- Entity Framework Core 8
+- Microsoft SQL Server / MSSQL 2022
 - ASP.NET Core Identity
+- lokalna shramba slik v `wwwroot/uploads`
+- Windows/IIS/Plesk produkcijsko gostovanje
 - Responsive HTML/CSS/JavaScript
 - GitHub Actions CI
+
+## Lokalni razvoj
+
+Na Windows računalniku je privzeta povezava nastavljena na SQL Server LocalDB (`MSSQLLocalDB`). Po želji se lahko uporabi tudi SQL Server 2022 prek `docker-compose.yml` ali lasten SQL Server.
+
+## Ciljno gostovanje
+
+Projekt je pripravljen za klasično Windows gostovanje z ASP.NET Core 8, IIS/Plesk in MSSQL 2022. Produkcijski connection string se nastavi na gostovanju in se ne shranjuje v GitHub.
 
 ## Razvojne faze
 
@@ -30,4 +40,4 @@ Projekt je zasnovan tudi za zbirke brez uradnega oštevilčenja: vsak predmet la
 
 ## Status
 
-Projekt je v začetni razvojni fazi.
+Faza 1 je implementirana. Projekt se nadaljuje na obstoječi kodi z MSSQL kot ciljno podatkovno bazo.
