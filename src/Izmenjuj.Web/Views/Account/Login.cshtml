@@ -8,6 +8,8 @@
         <div class="page-kicker">DOBRODOŠEL NAZAJ</div>
         <h1>Prijava</h1>
         <p class="muted">Prijavi se za urejanje svojih zbirk in pripravo menjav.</p>
+        @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+        @if (TempData["Error"] is string error) { <div class="notice trade-error">@error</div> }
         @if (suspended)
         {
             <div class="notice trade-error">Tvoj račun je trenutno administrativno suspendiran. Za dodatne informacije se obrni na podporo.</div>
@@ -19,6 +21,11 @@
             <label><span asp-for="Password"></span><input asp-for="Password" autocomplete="current-password" /><small asp-validation-for="Password"></small></label>
             <label class="inline-check"><input asp-for="RememberMe" /> <span asp-for="RememberMe"></span></label>
             <button class="primary button" type="submit">Prijavi se</button>
+        </form>
+        <p class="auth-footer"><a asp-action="ForgotPassword">Pozabljeno geslo?</a></p>
+        <form asp-action="ResendConfirmation" method="post" class="form-grid single" style="margin-top:14px">
+            <label><span>Nova potrditvena povezava</span><input type="email" name="Email" value="@Model.Email" placeholder="tvoj@email.si" required /></label>
+            <button class="secondary button" type="submit">Ponovno pošlji potrditev</button>
         </form>
         <p class="auth-footer">Še nimaš računa? <a asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Registriraj se</a></p>
     </div>
