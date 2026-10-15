@@ -70,6 +70,58 @@ public sealed class AdminReportRowViewModel
     public string? ResolutionNote { get; set; }
 }
 
+public sealed class AdminTradesViewModel
+{
+    public TradeStatus? Status { get; set; }
+    public List<AdminTradeSummaryViewModel> Rows { get; set; } = [];
+}
+
+public sealed class AdminTradeSummaryViewModel
+{
+    public Guid Id { get; set; }
+    public string ProposerName { get; set; } = string.Empty;
+    public string RecipientName { get; set; } = string.Empty;
+    public TradeStatus Status { get; set; }
+    public int LineQuantity { get; set; }
+    public int MessageCount { get; set; }
+    public DateTime CreatedUtc { get; set; }
+}
+
+public sealed class AdminTradeInspectViewModel
+{
+    public Guid Id { get; set; }
+    public string ProposerName { get; set; } = string.Empty;
+    public string RecipientName { get; set; } = string.Empty;
+    public TradeStatus Status { get; set; }
+    public DateTime CreatedUtc { get; set; }
+    public List<AdminTradeLineViewModel> Lines { get; set; } = [];
+    public List<AdminTradeMessageViewModel> Messages { get; set; } = [];
+    public List<AdminTradeEventViewModel> Events { get; set; } = [];
+}
+
+public sealed class AdminTradeLineViewModel
+{
+    public string FromUserName { get; set; } = string.Empty;
+    public string ItemLabel { get; set; } = string.Empty;
+    public string CollectionTitle { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+}
+
+public sealed class AdminTradeMessageViewModel
+{
+    public string SenderName { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public DateTime SentUtc { get; set; }
+}
+
+public sealed class AdminTradeEventViewModel
+{
+    public string ActorName { get; set; } = string.Empty;
+    public TradeEventType Type { get; set; }
+    public string? Note { get; set; }
+    public DateTime CreatedUtc { get; set; }
+}
+
 public sealed class AdminSuspendInputViewModel
 {
     [Required] public string UserId { get; set; } = string.Empty;
