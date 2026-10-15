@@ -26,3 +26,17 @@ jobs:
           path: ./publish
           if-no-files-found: error
           retention-days: 14
+      - name: Publish standalone Windows preview
+        run: dotnet publish src/Izmenjuj.Web/Izmenjuj.Web.csproj --configuration Release --runtime win-x64 --self-contained true --output ./preview-publish
+      - name: Add preview launcher files
+        run: |
+          cp tools/preview/START_PREVIEW.bat ./preview-publish/START_PREVIEW.bat
+          cp tools/preview/RESET_PREVIEW.bat ./preview-publish/RESET_PREVIEW.bat
+          cp tools/preview/PREBERI_ME.txt ./preview-publish/PREBERI_ME.txt
+      - name: Upload standalone Windows preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: izmenjuj-local-preview-win-x64
+          path: ./preview-publish
+          if-no-files-found: error
+          retention-days: 14
