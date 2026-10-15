@@ -1,32 +1,55 @@
 @{
     ViewData["Title"] = "Domov";
 }
-<section class="hero">
-    <div><span class="eyebrow">DOBRODOŠEL NA</span><h1>izmenjuj.si</h1><p>Zbiraj. Menjaj. Dopolni zbirko.</p><div class="hero-actions"><a class="primary" asp-controller="Collections" asp-action="Index">Razišči zbirke →</a>@if (User.Identity?.IsAuthenticated == true) { <a class="secondary" asp-controller="Matches" asp-action="Index">Poišči ujemanja</a> } else { <a class="secondary" asp-controller="Account" asp-action="Register">Pridruži se</a> }</div></div>
-    <div class="card-fan"><div class="sample-card sport">Šport</div><div class="sample-card nature">Živali</div><div class="sample-card fantasy">Fantazija</div></div>
-</section>
-
-<section class="stats">
-    <article><span class="stat-icon blue">▤</span><div><small>Zbirke</small><strong>F1</strong><em>aktivno</em></div></article>
-    <article><span class="stat-icon red">□</span><div><small>Manjkajoče</small><strong>F2</strong><em>aktivno</em></div></article>
-    <article><span class="stat-icon green">⇄</span><div><small>Za menjavo</small><strong>F2</strong><em>aktivno</em></div></article>
-    <article><span class="stat-icon violet">◇</span><div><small>Ujemanja</small><strong>F3</strong><em>aktivno</em></div></article>
-</section>
-
-<div class="dashboard-grid">
-<section class="panel" id="albums">
-    <header><h2>Kaj lahko zbiraš</h2><a asp-controller="Collections" asp-action="Index">Prikaži zbirke →</a></header>
-    <div class="album-grid">
-        <article class="album-card"><div class="cover cover-sport"><b>1–999</b><span>SLIČICE</span></div><h3>Oštevilčeni albumi</h3><p>Klasične sličice z uradnimi številkami in podatki albuma.</p></article>
-        <article class="album-card"><div class="cover cover-animals"><b>📷</b><span>FIGURICE</span></div><h3>Zbirke brez številk</h3><p>Vizualna identifikacija z nazivom, interno oznako in več slikami.</p></article>
-        <article class="album-card"><div class="cover cover-fantasy"><b>VAR</b><span>KARTE IN DRUGO</span></div><h3>Različice in posebnosti</h3><p>Podlaga je pripravljena tudi za variante posameznih predmetov.</p></article>
+<section class="home-welcome">
+    <div class="welcome-main">
+        <span class="eyebrow">ZBIRATELJI NA ENEM MESTU</span>
+        <h1>Zbiraj. Menjaj. Dopolni zbirko.</h1>
+        <p>Izmenjuj.si poveže tvoje manjkajoče predmete z viški drugih zbirateljev – ne glede na to, ali zbiraš sličice, karte, figurice ali kaj drugega.</p>
+        <div class="hero-actions">
+            <a class="primary button" asp-controller="Collections" asp-action="Index">Razišči zbirke</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a class="secondary button" asp-controller="Matches" asp-action="Index">Poišči ujemanja</a>
+            }
+            else
+            {
+                <a class="secondary button" asp-controller="Account" asp-action="Register">Ustvari račun</a>
+            }
+        </div>
+    </div>
+    <div class="welcome-visual" aria-hidden="true">
+        <div class="visual-stack">
+            <div class="visual-card one"><div></div><b>Sličice</b><small>številke in albumi</small></div>
+            <div class="visual-card two"><div></div><b>Karte</b><small>variante in serije</small></div>
+            <div class="visual-card three"><div></div><b>Figurice</b><small>vizualna identifikacija</small></div>
+            <span class="visual-exchange">↔</span>
+        </div>
     </div>
 </section>
 
-<section class="panel matches" id="matches">
-    <header><h2>Menjave in komunikacija</h2>@if (User.Identity?.IsAuthenticated == true) { <a asp-controller="Trades" asp-action="Index">Odpri menjave →</a> }</header>
-    <article class="match"><div class="avatar">4</div><div><h3>Predlog in protipredlog</h3><strong>Aktivno</strong><p>Sprejmi, zavrni ali prilagodi konkretne predmete.</p></div></article>
-    <article class="match"><div class="avatar">✉</div><div><h3>Zasebni pogovor</h3><strong>Aktivno</strong><p>Sporočila so vezana na posamezno menjavo.</p></div></article>
-    <article class="match"><div class="avatar">✓</div><div><h3>Varen zaključek</h3><strong>Aktivno</strong><p>Po potrditvi obeh se evidence samodejno posodobijo.</p></div></article>
+<section class="home-steps" aria-label="Kako deluje Izmenjuj.si">
+    <article class="home-step"><span>1</span><div><h3>Uredi svojo zbirko</h3><p>Označi, kaj imaš, kaj iščeš in koliko primerkov lahko zamenjaš.</p></div></article>
+    <article class="home-step"><span>2</span><div><h3>Poišči pravo ujemanje</h3><p>Sistem poišče zbiratelje, kjer imata oba nekaj, kar potrebuje drugi.</p></div></article>
+    <article class="home-step"><span>3</span><div><h3>Dogovori menjavo</h3><p>Pošlji konkreten predlog, uskladi podrobnosti in potrdi zaključen posel.</p></div></article>
 </section>
+
+<div class="home-grid">
+    <section class="panel">
+        <header><h2>Za različne vrste zbirk</h2><a asp-controller="Collections" asp-action="Index">Poglej vse zbirke</a></header>
+        <div class="collection-type-grid">
+            <article class="collection-type-card"><div class="type-icon">001</div><h3>Oštevilčeni albumi</h3><p>Hiter, kompakten pregled številk brez obveznega prikaza slike vsake sličice.</p></article>
+            <article class="collection-type-card"><div class="type-icon">VAR</div><h3>Karte in različice</h3><p>Uradna oznaka, interna koda in varianta ostanejo jasno vidne pri posameznem predmetu.</p></article>
+            <article class="collection-type-card"><div class="type-icon">IMG</div><h3>Figurice in posebnosti</h3><p>Kjer je videz pomemben, lahko zbirka uporablja glavno fotografijo in dodatno galerijo.</p></article>
+        </div>
+    </section>
+
+    <section class="panel">
+        <header><h2>Menjava brez ugibanja</h2>@if (User.Identity?.IsAuthenticated == true) { <a asp-controller="Trades" asp-action="Index">Moje menjave</a> }</header>
+        <div class="home-status-list">
+            <div class="home-status"><span class="home-status-dot"></span><div><strong>Točno določeni predmeti</strong><p>Pri predlogu vidiš kodo, naziv, zbirko, različico in količino.</p></div></div>
+            <div class="home-status"><span class="home-status-dot"></span><div><strong>Zaseben pogovor</strong><p>Sporočila so vezana na posamezno menjavo in niso javna.</p></div></div>
+            <div class="home-status"><span class="home-status-dot"></span><div><strong>Dvostranski zaključek</strong><p>Evidenca se spremeni šele, ko zaključek potrdita oba udeleženca.</p></div></div>
+        </div>
+    </section>
 </div>
