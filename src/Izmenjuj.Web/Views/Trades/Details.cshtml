@@ -153,7 +153,7 @@ else if (Model.Status == TradeStatus.Accepted)
             <div class="rating-list">
                 @foreach (var rating in Model.Ratings)
                 {
-                    <article><strong>@rating.FromDisplayName</strong><span class="rating-stars">@new string('★', rating.Stars)@new string('☆', 5 - rating.Stars)</span>@if (!string.IsNullOrWhiteSpace(rating.Comment)) { <p>@rating.Comment</p> }</article>
+                    <article><strong>@rating.FromDisplayName</strong><span class="rating-stars">@(new string('★', rating.Stars))@(new string('☆', 5 - rating.Stars))</span>@if (!string.IsNullOrWhiteSpace(rating.Comment)) { <p>@rating.Comment</p> }</article>
                 }
             </div>
         }
