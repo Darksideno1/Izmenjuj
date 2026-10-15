@@ -228,6 +228,82 @@ public sealed class AdminController(
     }
 
     [HttpGet]
+    public async Task<IActionResult> Trades(TradeStatus? status, CancellationToken cancellationToken)
+    {
+        var query = db.Trades.AsNoTracking().Include(x => x.Lines).Include(x => x.Messages).AsQueryable();
+        if (status.HasValue) query = query.Where(x => x.Status == status.Value);
+
+        var trades = await query.OrderByDescending(x => x.CreatedUtc).Take(500).ToListAsync(cancellationToken);
+        var userIds = trades.SelectMany(x => new[] { x.ProposerUserId, x.RecipientUserId }).Distinct().ToList();
+        var users = await db.Users.AsNoTracking().Where(x => userIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, cancellationToken);
+
+        return View(new AdminTradesViewModel
+        {
+            Status = status,
+            Rows = trades.Select(x => new AdminTradeSummaryViewModel
+            {
+                Id = x.Id,
+                ProposerName = users.TryGetValue(x.ProposerUserId, out var proposer) ? DisplayName(proposer) : "Neznan uporabnik",
+                RecipientName = users.TryGetValue(x.RecipientUserId, out var recipient) ? DisplayName(recipient) : "Neznan uporabnik",
+                Status = x.Status,
+                LineQuantity = x.Lines.Sum(line => line.Quantity),
+                MessageCount = x.Messages.Count,
+                CreatedUtc = x.CreatedUtc
+            }).ToList()
+        });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Trade(Guid id, CancellationToken cancellationToken)
+    {
+        var trade = await db.Trades.AsNoTracking()
+            .Include(x => x.Lines).ThenInclude(x => x.Item).ThenInclude(x => x.Collection)
+            .Include(x => x.Messages)
+            .Include(x => x.Events)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (trade is null) return NotFound();
+
+        var userIds = trade.Lines.Select(x => x.FromUserId)
+            .Concat(trade.Messages.Select(x => x.SenderUserId))
+            .Concat(trade.Events.Select(x => x.ActorUserId))
+            .Append(trade.ProposerUserId)
+            .Append(trade.RecipientUserId)
+            .Distinct()
+            .ToList();
+        var users = await db.Users.AsNoTracking().Where(x => userIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, cancellationToken);
+        string Name(string userId) => users.TryGetValue(userId, out var user) ? DisplayName(user) : "Neznan uporabnik";
+
+        return View(new AdminTradeInspectViewModel
+        {
+            Id = trade.Id,
+            ProposerName = Name(trade.ProposerUserId),
+            RecipientName = Name(trade.RecipientUserId),
+            Status = trade.Status,
+            CreatedUtc = trade.CreatedUtc,
+            Lines = trade.Lines.Select(x => new AdminTradeLineViewModel
+            {
+                FromUserName = Name(x.FromUserId),
+                ItemLabel = $"{x.Item.OfficialCode ?? x.Item.InternalCode} – {x.Item.Name}",
+                CollectionTitle = x.Item.Collection.Title,
+                Quantity = x.Quantity
+            }).ToList(),
+            Messages = trade.Messages.OrderBy(x => x.SentUtc).Select(x => new AdminTradeMessageViewModel
+            {
+                SenderName = Name(x.SenderUserId),
+                Body = x.Body,
+                SentUtc = x.SentUtc
+            }).ToList(),
+            Events = trade.Events.OrderBy(x => x.CreatedUtc).Select(x => new AdminTradeEventViewModel
+            {
+                ActorName = Name(x.ActorUserId),
+                Type = x.Type,
+                Note = x.Note,
+                CreatedUtc = x.CreatedUtc
+            }).ToList()
+        });
+    }
+
+    [HttpGet]
     public async Task<IActionResult> BulkItems(Guid collectionId, CancellationToken cancellationToken)
     {
         var collection = await db.Collections.AsNoTracking().FirstOrDefaultAsync(x => x.Id == collectionId, cancellationToken);
