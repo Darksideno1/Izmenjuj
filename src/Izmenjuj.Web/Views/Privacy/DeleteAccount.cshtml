@@ -1,0 +1,17 @@
+@model DeleteAccountViewModel
+@{
+    ViewData["Title"] = "Izbris računa";
+}
+<section class="page-head">
+    <div><div class="page-kicker">ZASEBNOST</div><h1>Izbris računa</h1><p>Osebni račun bo odstranjen, zgodovina že izvedenih menjav pa bo ohranjena brez povezave do tvojega računa.</p></div>
+</section>
+<div class="form-card narrow danger-card">
+    <div class="warning-box"><strong>To dejanje je nepovratno.</strong><p>Pred izbrisom priporočamo izvoz osebnih podatkov. Odprtih ali sprejetih menjav ne sme biti.</p></div>
+    <form asp-action="DeleteAccount" method="post" class="form-grid single">
+        <div asp-validation-summary="ModelOnly" class="validation"></div>
+        <label><span asp-for="Password"></span><input asp-for="Password" autocomplete="current-password" /><small asp-validation-for="Password"></small></label>
+        <label class="inline-check"><input asp-for="Confirm" /> <span asp-for="Confirm"></span></label>
+        <small asp-validation-for="Confirm"></small>
+        <div class="form-actions"><a class="secondary button" asp-controller="Account" asp-action="Profile">Prekliči</a><button class="danger-button" type="submit">Trajno izbriši račun</button></div>
+    </form>
+</div>
