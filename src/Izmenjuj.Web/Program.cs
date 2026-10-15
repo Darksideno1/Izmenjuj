@@ -9,16 +9,27 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var previewMode = builder.Configuration.GetValue<bool>("PreviewMode")
+                  || string.Equals(Environment.GetEnvironmentVariable("IZMENJUJ_PREVIEW"), "1", StringComparison.Ordinal);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Server=(localdb)\\MSSQLLocalDB;Database=Izmenjuj;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
-var requireConfirmedAccount = builder.Configuration.GetValue(
-    "Identity:RequireConfirmedAccount",
-    builder.Environment.IsProduction());
+var requireConfirmedAccount = previewMode
+    ? false
+    : builder.Configuration.GetValue("Identity:RequireConfirmedAccount", builder.Environment.IsProduction());
 
 builder.Services.AddScoped<TradeNotificationInterceptor>();
 builder.Services.AddDbContext<ApplicationDbContext>((services, options) =>
-    options.UseSqlServer(connectionString)
-        .AddInterceptors(services.GetRequiredService<TradeNotificationInterceptor>()));
+{
+    if (previewMode)
+    {
+        options.UseSqlite("Data Source=izmenjuj-preview.db");
+    }
+    else
+    {
+        options.UseSqlServer(connectionString)
+            .AddInterceptors(services.GetRequiredService<TradeNotificationInterceptor>());
+    }
+});
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -47,7 +58,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "izmenjuj.auth";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = builder.Environment.IsProduction()
+    options.Cookie.SecurePolicy = builder.Environment.IsProduction() && !previewMode
         ? CookieSecurePolicy.Always
         : CookieSecurePolicy.SameAsRequest;
     options.SlidingExpiration = true;
@@ -90,13 +101,16 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && !previewMode)
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!previewMode)
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 app.UseRouting();
 app.UseRateLimiter();
@@ -107,22 +121,30 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var services = scope.ServiceProvider;
     var db = services.GetRequiredService<ApplicationDbContext>();
-    await DatabaseBootstrap.InitializeAsync(db);
 
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-    if (!await roleManager.RoleExistsAsync("Admin"))
+    if (previewMode)
     {
-        await roleManager.CreateAsync(new IdentityRole("Admin"));
+        await PreviewDataSeeder.SeedAsync(services);
     }
-
-    var adminEmail = builder.Configuration["Admin:Email"]?.Trim();
-    if (!string.IsNullOrWhiteSpace(adminEmail))
+    else
     {
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var admin = await userManager.FindByEmailAsync(adminEmail);
-        if (admin is not null && !await userManager.IsInRoleAsync(admin, "Admin"))
+        await DatabaseBootstrap.InitializeAsync(db);
+
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        if (!await roleManager.RoleExistsAsync("Admin"))
         {
-            await userManager.AddToRoleAsync(admin, "Admin");
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+        }
+
+        var adminEmail = builder.Configuration["Admin:Email"]?.Trim();
+        if (!string.IsNullOrWhiteSpace(adminEmail))
+        {
+            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+            var admin = await userManager.FindByEmailAsync(adminEmail);
+            if (admin is not null && !await userManager.IsInRoleAsync(admin, "Admin"))
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
         }
     }
 }
@@ -131,7 +153,7 @@ app.MapGet("/health", async (ApplicationDbContext db, CancellationToken cancella
 {
     var databaseOk = await db.Database.CanConnectAsync(cancellationToken);
     return databaseOk
-        ? Results.Ok(new { status = "ok", app = "Izmenjuj.si", database = "ok" })
+        ? Results.Ok(new { status = "ok", app = "Izmenjuj.si", database = "ok", preview = previewMode })
         : Results.Problem(statusCode: 503, title: "Database unavailable");
 });
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
