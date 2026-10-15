@@ -18,18 +18,19 @@ public sealed class ItemsController(
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var userId = userManager.GetUserId(User);
+        var isAdmin = User.IsInRole("Admin");
         var item = await db.CollectibleItems
             .AsNoTracking()
             .Include(x => x.Collection)
             .Include(x => x.Images.OrderBy(i => i.SortOrder))
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        if (item is null || (!item.Collection.IsPublished && item.Collection.CreatedByUserId != userId))
+        if (item is null || (!item.Collection.IsPublished && item.Collection.CreatedByUserId != userId && !isAdmin))
         {
             return NotFound();
         }
 
-        ViewData["CanEdit"] = userId != null && item.Collection.CreatedByUserId == userId;
+        ViewData["CanEdit"] = isAdmin || (userId != null && item.Collection.CreatedByUserId == userId);
         return View(item);
     }
 
@@ -37,7 +38,7 @@ public sealed class ItemsController(
     [HttpGet]
     public async Task<IActionResult> Create(Guid collectionId, CancellationToken cancellationToken)
     {
-        var collection = await FindOwnedCollection(collectionId, cancellationToken);
+        var collection = await FindManagedCollection(collectionId, cancellationToken);
         if (collection is null)
         {
             return NotFound();
@@ -55,7 +56,7 @@ public sealed class ItemsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ItemEditViewModel model, CancellationToken cancellationToken)
     {
-        var collection = await FindOwnedCollection(model.CollectionId, cancellationToken);
+        var collection = await FindManagedCollection(model.CollectionId, cancellationToken);
         if (collection is null)
         {
             return NotFound();
@@ -121,7 +122,7 @@ public sealed class ItemsController(
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
-        var item = await FindOwnedItem(id, cancellationToken);
+        var item = await FindManagedItem(id, cancellationToken);
         if (item is null)
         {
             return NotFound();
@@ -147,7 +148,7 @@ public sealed class ItemsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ItemEditViewModel model, CancellationToken cancellationToken)
     {
-        var item = await FindOwnedItem(model.Id, cancellationToken);
+        var item = await FindManagedItem(model.Id, cancellationToken);
         if (item is null)
         {
             return NotFound();
@@ -214,7 +215,7 @@ public sealed class ItemsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteImage(Guid id, Guid imageId, CancellationToken cancellationToken)
     {
-        var item = await FindOwnedItem(id, cancellationToken);
+        var item = await FindManagedItem(id, cancellationToken);
         if (item is null)
         {
             return NotFound();
@@ -238,7 +239,7 @@ public sealed class ItemsController(
     [HttpGet]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var item = await FindOwnedItem(id, cancellationToken);
+        var item = await FindManagedItem(id, cancellationToken);
         return item is null ? NotFound() : View(item);
     }
 
@@ -247,10 +248,17 @@ public sealed class ItemsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
-        var item = await FindOwnedItem(id, cancellationToken);
+        var item = await FindManagedItem(id, cancellationToken);
         if (item is null)
         {
             return NotFound();
+        }
+
+        if (await db.UserInventories.AnyAsync(x => x.CollectibleItemId == item.Id, cancellationToken)
+            || await db.TradeLines.AnyAsync(x => x.CollectibleItemId == item.Id, cancellationToken))
+        {
+            TempData["Error"] = "Predmeta ni mogoče izbrisati, ker je že uporabljen v osebni evidenci ali zgodovini menjav. Če gre za dvojnik, uporabi ADMIN združevanje predmetov.";
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         await imageStorage.DeleteAsync(item.PrimaryImagePath, cancellationToken);
@@ -267,7 +275,7 @@ public sealed class ItemsController(
         return RedirectToAction("Details", "Collections", new { id = collectionId });
     }
 
-    private async Task<Collection?> FindOwnedCollection(Guid id, CancellationToken cancellationToken)
+    private async Task<Collection?> FindManagedCollection(Guid id, CancellationToken cancellationToken)
     {
         var userId = userManager.GetUserId(User);
         if (userId is null)
@@ -275,12 +283,13 @@ public sealed class ItemsController(
             return null;
         }
 
+        var isAdmin = User.IsInRole("Admin");
         return await db.Collections.FirstOrDefaultAsync(
-            x => x.Id == id && x.CreatedByUserId == userId,
+            x => x.Id == id && (isAdmin || x.CreatedByUserId == userId),
             cancellationToken);
     }
 
-    private async Task<CollectibleItem?> FindOwnedItem(Guid id, CancellationToken cancellationToken)
+    private async Task<CollectibleItem?> FindManagedItem(Guid id, CancellationToken cancellationToken)
     {
         var userId = userManager.GetUserId(User);
         if (userId is null)
@@ -288,10 +297,11 @@ public sealed class ItemsController(
             return null;
         }
 
+        var isAdmin = User.IsInRole("Admin");
         return await db.CollectibleItems
             .Include(x => x.Collection)
             .Include(x => x.Images)
-            .FirstOrDefaultAsync(x => x.Id == id && x.Collection.CreatedByUserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == id && (isAdmin || x.Collection.CreatedByUserId == userId), cancellationToken);
     }
 
     private Task<bool> InternalCodeExists(Guid collectionId, string internalCode, Guid? exceptId, CancellationToken cancellationToken) =>
