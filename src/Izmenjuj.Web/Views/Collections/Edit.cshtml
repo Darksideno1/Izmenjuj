@@ -1,0 +1,45 @@
+@model CollectionEditViewModel
+@{
+    var isEdit = Model.Id != Guid.Empty;
+    ViewData["Title"] = isEdit ? "Uredi zbirko" : "Dodaj zbirko";
+}
+<section class="page-head">
+    <div><div class="page-kicker">@(isEdit ? "UREJANJE" : "NOVA ZBIRKA")</div><h1>@(isEdit ? "Uredi zbirko" : "Dodaj novo zbirko")</h1><p>Vnesi osnovne podatke, naslovnico in dodatne slike za lažjo prepoznavo.</p></div>
+</section>
+<div class="form-card">
+    <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" enctype="multipart/form-data" class="form-grid">
+        @if (isEdit) { <input asp-for="Id" type="hidden" /> }
+        <div asp-validation-summary="ModelOnly" class="validation full"></div>
+
+        <label><span asp-for="Title"></span><input asp-for="Title" /><small asp-validation-for="Title"></small></label>
+        <label><span asp-for="Subtitle"></span><input asp-for="Subtitle" /><small asp-validation-for="Subtitle"></small></label>
+        <label><span asp-for="Year"></span><input asp-for="Year" inputmode="numeric" /><small asp-validation-for="Year"></small></label>
+        <label><span asp-for="Type"></span><select asp-for="Type" asp-items="Html.GetEnumSelectList<CollectionType>()"></select></label>
+        <label><span asp-for="Manufacturer"></span><input asp-for="Manufacturer" /><small asp-validation-for="Manufacturer"></small></label>
+        <label><span asp-for="Country"></span><input asp-for="Country" /><small asp-validation-for="Country"></small></label>
+        <label class="full"><span asp-for="Description"></span><textarea asp-for="Description" rows="6" placeholder="Kaj zbirka vsebuje, kako jo prepoznamo, posebnosti ..."></textarea><small asp-validation-for="Description"></small></label>
+
+        <section class="upload-section full">
+            <div><h2>Naslovna slika</h2><p>JPG, PNG ali WEBP, največ 6 MB.</p></div>
+            @if (!string.IsNullOrWhiteSpace(Model.CurrentCoverImagePath)) { <img class="cover-preview" src="@Model.CurrentCoverImagePath" alt="Trenutna naslovnica" /> }
+            <input asp-for="CoverImage" accept="image/jpeg,image/png,image/webp" />
+        </section>
+
+        <section class="upload-section full">
+            <div><h2>Dodatne slike</h2><p>Dodaj zadnjo stran albuma, kontrolni seznam, embalažo ali več zornih kotov.</p></div>
+            <input asp-for="GalleryImages" type="file" multiple accept="image/jpeg,image/png,image/webp" />
+            @if (Model.CurrentImages.Count > 0)
+            {
+                <div class="editable-gallery">
+                    @foreach (var image in Model.CurrentImages.OrderBy(x => x.SortOrder))
+                    {
+                        <div><img src="@image.ImagePath" alt="Dodatna slika" /><button type="submit" class="tiny-danger" formaction="@Url.Action("DeleteImage", "Collections", new { id = Model.Id, imageId = image.Id })" formmethod="post">Odstrani</button></div>
+                    }
+                </div>
+            }
+        </section>
+
+        <label class="inline-check full"><input asp-for="IsPublished" /> <span asp-for="IsPublished"></span></label>
+        <div class="form-actions full"><a class="secondary button" asp-action="@(isEdit ? "Details" : "Index")" asp-route-id="@(isEdit ? Model.Id : null)">Prekliči</a><button class="primary button" type="submit">@(isEdit ? "Shrani spremembe" : "Ustvari zbirko")</button></div>
+    </form>
+</div>

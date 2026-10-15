@@ -1,0 +1,44 @@
+@model Collection
+@{
+    ViewData["Title"] = Model.Title;
+    var canEdit = ViewData["CanEdit"] as bool? == true;
+}
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+<section class="collection-hero">
+    <div class="detail-cover">
+        @if (!string.IsNullOrWhiteSpace(Model.CoverImagePath)) { <img src="@Model.CoverImagePath" alt="@Model.Title" /> }
+        else { <div class="cover-placeholder large">↔</div> }
+    </div>
+    <div class="collection-summary">
+        <div class="page-kicker">@Model.Type</div>
+        <h1>@Model.Title</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.Subtitle)) { <h2>@Model.Subtitle</h2> }
+        <p>@(Model.Description ?? "Opis zbirke še ni vpisan.")</p>
+        <div class="meta-chips">
+            @if (Model.Year is not null) { <span>📅 @Model.Year</span> }
+            @if (!string.IsNullOrWhiteSpace(Model.Manufacturer)) { <span>🏷 @Model.Manufacturer</span> }
+            @if (!string.IsNullOrWhiteSpace(Model.Country)) { <span>🌍 @Model.Country</span> }
+            <span>▦ @Model.Items.Count predmetov</span>
+        </div>
+        @if (canEdit)
+        {
+            <div class="hero-actions"><a class="primary button" asp-action="Edit" asp-route-id="@Model.Id">Uredi zbirko</a><a class="danger-link" asp-action="Delete" asp-route-id="@Model.Id">Izbriši</a></div>
+        }
+    </div>
+</section>
+@if (Model.Images.Count > 0)
+{
+    <section class="panel gallery-panel">
+        <header><h2>Dodatne slike</h2><span>@Model.Images.Count</span></header>
+        <div class="gallery-grid">
+            @foreach (var image in Model.Images.OrderBy(x => x.SortOrder))
+            {
+                <figure><img src="@image.ImagePath" alt="@(image.Caption ?? Model.Title)" />@if (!string.IsNullOrWhiteSpace(image.Caption)) { <figcaption>@image.Caption</figcaption> }</figure>
+            }
+        </div>
+    </section>
+}
+<section class="panel phase-preview">
+    <header><h2>Predmeti v zbirki</h2><span>Faza 2</span></header>
+    <p>Naslednji korak bo vizualna mreža sličic, kart ali figuric z oznakami <strong>Imam</strong>, <strong>Iščem</strong> in <strong>Za menjavo</strong>. Pri figuricah brez uradne številke bo ključna fotografija in interna oznaka.</p>
+</section>

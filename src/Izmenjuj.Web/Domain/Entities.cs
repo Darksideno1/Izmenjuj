@@ -26,8 +26,11 @@ public sealed class Collection
     [MaxLength(160)] public string? Manufacturer { get; set; }
     [MaxLength(80)] public string? Country { get; set; }
     public CollectionType Type { get; set; }
-    public bool IsPublished { get; set; }
-    public string? CoverImagePath { get; set; }
+    public bool IsPublished { get; set; } = true;
+    [MaxLength(500)] public string? CoverImagePath { get; set; }
+    [MaxLength(450)] public string? CreatedByUserId { get; set; }
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedUtc { get; set; } = DateTime.UtcNow;
     public List<CollectionImage> Images { get; set; } = [];
     public List<CollectibleItem> Items { get; set; } = [];
 }
@@ -52,7 +55,7 @@ public sealed class CollectibleItem
     [MaxLength(80)] public required string InternalCode { get; set; }
     [MaxLength(2000)] public string? Description { get; set; }
     [MaxLength(120)] public string? Variant { get; set; }
-    public string? PrimaryImagePath { get; set; }
+    [MaxLength(500)] public string? PrimaryImagePath { get; set; }
     public List<ItemImage> Images { get; set; } = [];
 }
 

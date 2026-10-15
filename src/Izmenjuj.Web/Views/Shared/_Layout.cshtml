@@ -8,20 +8,44 @@
 </head>
 <body>
 <header class="topbar">
-    <a class="brand" href="/">↔ <span>izmenjuj.si</span></a>
-    <label class="search"><span>⌕</span><input aria-label="Iskanje" placeholder="Išči albume, predmete, uporabnike ..." /></label>
-    <nav class="topnav"><a class="active" href="/">Domov</a><a href="#albums">Albumi</a><a href="#matches">Menjave</a><a href="#">Sporočila</a><a href="#">Profil</a></nav>
+    <a class="brand" asp-controller="Home" asp-action="Index">↔ <span>izmenjuj.si</span></a>
+    <form class="search" asp-controller="Collections" asp-action="Index" method="get"><span>⌕</span><input name="q" aria-label="Iskanje" placeholder="Išči albume, predmete, uporabnike ..." /></form>
+    <nav class="topnav">
+        <a asp-controller="Home" asp-action="Index">Domov</a>
+        <a asp-controller="Collections" asp-action="Index">Albumi</a>
+        <a href="#">Menjave</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="Account" asp-action="Profile">Profil</a>
+            <form asp-controller="Account" asp-action="Logout" method="post"><button class="nav-button" type="submit">Odjava</button></form>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login">Prijava</a>
+            <a class="nav-register" asp-controller="Account" asp-action="Register">Registracija</a>
+        }
+    </nav>
 </header>
 <div class="shell">
     <aside class="sidebar">
-        <a class="active" href="/">⌂ <span>Domov</span></a>
-        <a href="#albums">▣ <span>Moje zbirke</span></a>
-        <a href="#matches">⇄ <span>Menjave</span></a>
+        <a asp-controller="Home" asp-action="Index">⌂ <span>Domov</span></a>
+        <a asp-controller="Collections" asp-action="Index">▣ <span>Zbirke</span></a>
+        <a href="#">⇄ <span>Menjave</span></a>
         <a href="#">◌ <span>Sporočila</span></a>
         <a href="#">◎ <span>Skupnost</span></a>
-        <a href="#">⚙ <span>Nastavitve</span></a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="Account" asp-action="Profile">⚙ <span>Profil</span></a>
+        }
         <div class="sidebar-spacer"></div>
-        <button class="add-button">＋ Dodaj album</button>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="add-button" asp-controller="Collections" asp-action="Create">＋ <span>Dodaj zbirko</span></a>
+        }
+        else
+        {
+            <a class="add-button" asp-controller="Account" asp-action="Register">＋ <span>Pridruži se</span></a>
+        }
     </aside>
     <main class="content">@RenderBody()</main>
 </div>

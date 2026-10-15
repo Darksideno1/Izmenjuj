@@ -19,6 +19,12 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<Collection>()
+            .HasIndex(x => new { x.IsPublished, x.UpdatedUtc });
+
+        builder.Entity<Collection>()
+            .HasIndex(x => x.CreatedByUserId);
+
         builder.Entity<CollectibleItem>()
             .HasIndex(x => new { x.CollectionId, x.InternalCode })
             .IsUnique();
