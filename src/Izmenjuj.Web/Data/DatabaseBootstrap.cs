@@ -14,18 +14,19 @@ public static class DatabaseBootstrap
         {
             await using var command = db.Database.GetDbConnection().CreateCommand();
             command.CommandText = """
-                SELECT EXISTS (
+                SELECT CASE WHEN EXISTS (
                     SELECT 1
-                    FROM information_schema.tables
-                    WHERE table_schema = 'public' AND table_name = 'AspNetUsers'
-                );
+                    FROM INFORMATION_SCHEMA.TABLES
+                    WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'AspNetUsers'
+                ) THEN 1 ELSE 0 END;
                 """;
+
             if (command.Connection?.State != ConnectionState.Open)
             {
                 await command.Connection!.OpenAsync(cancellationToken);
             }
 
-            var exists = (bool)(await command.ExecuteScalarAsync(cancellationToken) ?? false);
+            var exists = Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken) ?? 0) == 1;
             if (!exists)
             {
                 var creator = db.GetService<IRelationalDatabaseCreator>();
