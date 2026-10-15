@@ -1,0 +1,22 @@
+@model BlockedUsersViewModel
+@{
+    ViewData["Title"] = "Blokirani uporabniki";
+}
+
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+
+<section class="page-head">
+    <div><div class="page-kicker">ZASEBNOST</div><h1>Blokirani uporabniki</h1><p>Blokirani uporabniki se ne pojavljajo med tvojimi novimi ujemanji in z njimi ni mogoče začeti nove menjave.</p></div>
+</section>
+
+<div class="panel block-list">
+    @foreach (var row in Model.Rows)
+    {
+        <div class="block-row">
+            <div class="avatar">@row.DisplayName.Substring(0, 1).ToUpperInvariant()</div>
+            <div><strong>@row.DisplayName</strong><p>@(row.City ?? "Kraj ni naveden") · blokirano @row.CreatedUtc.ToLocalTime().ToString("d. M. yyyy")</p></div>
+            <form asp-action="Unblock" method="post"><input type="hidden" name="userId" value="@row.UserId" /><button class="secondary button" type="submit">Odblokiraj</button></form>
+        </div>
+    }
+    @if (Model.Rows.Count == 0) { <div class="admin-empty">Nimaš blokiranih uporabnikov.</div> }
+</div>
