@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: izmenjuj
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Storage__Provider
+        value: Supabase
+      - key: Storage__SupabaseUrl
+        sync: false
+      - key: Storage__SupabaseSecretKey
+        sync: false
+      - key: Storage__Bucket
+        value: izmenjuj-images
