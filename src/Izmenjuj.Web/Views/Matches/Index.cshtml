@@ -1,0 +1,136 @@
+@model MatchIndexViewModel
+@{
+    ViewData["Title"] = "Ujemanja";
+}
+
+<section class="page-head match-page-head">
+    <div>
+        <div class="page-kicker">PAMETNO UJEMANJE</div>
+        <h1>Najboljše menjave zate</h1>
+        <p>Sistem primerja tvoje manjkajoče predmete z viški drugih zbirateljev v obe smeri.</p>
+    </div>
+    <div class="match-my-stats">
+        <span><strong>@Model.MyWantedCount</strong><small>Iščem</small></span>
+        <span><strong>@Model.MyForTradeCount</strong><small>Za menjavo</small></span>
+        <span><strong>@Model.Matches.Count</strong><small>Ujemanj</small></span>
+    </div>
+</section>
+
+<form class="panel match-filters" method="get" asp-action="Index">
+    <label>
+        <span>Zbirka</span>
+        <select name="collectionId">
+            <option value="">Vse zbirke</option>
+            @foreach (var collection in Model.Collections)
+            {
+                if (Model.CollectionId == collection.Id)
+                {
+                    <option value="@collection.Id" selected>@collection.Title</option>
+                }
+                else
+                {
+                    <option value="@collection.Id">@collection.Title</option>
+                }
+            }
+        </select>
+    </label>
+    <label>
+        <span>Mesto / kraj</span>
+        <input type="text" name="city" value="@Model.City" placeholder="npr. Ljubljana" />
+    </label>
+    <label>
+        <span>Način menjave</span>
+        <select name="tradeMode">
+            @if (Model.TradeMode == TradeModeFilter.Any) { <option value="Any" selected>Vse možnosti</option> } else { <option value="Any">Vse možnosti</option> }
+            @if (Model.TradeMode == TradeModeFilter.Mail) { <option value="Mail" selected>Po pošti</option> } else { <option value="Mail">Po pošti</option> }
+            @if (Model.TradeMode == TradeModeFilter.InPerson) { <option value="InPerson" selected>Osebno</option> } else { <option value="InPerson">Osebno</option> }
+        </select>
+    </label>
+    <button class="primary button" type="submit">Poišči ujemanja</button>
+    <a class="secondary button" asp-action="Index">Počisti filtre</a>
+</form>
+
+@if (Model.MyWantedCount == 0 || Model.MyForTradeCount == 0)
+{
+    <section class="empty-state match-empty">
+        <strong>Za ujemanje potrebujemo obe strani menjave.</strong>
+        <p>V svoji zbirki označi vsaj en predmet kot <b>Iščem</b> in vsaj enega kot <b>Za menjavo</b>.</p>
+        <a class="primary button" asp-controller="Collections" asp-action="Index">Odpri zbirke</a>
+    </section>
+}
+else if (Model.Matches.Count == 0)
+{
+    <section class="empty-state match-empty">
+        <strong>Trenutno ni obojestranskih ujemanj.</strong>
+        <p>Poskusi brez filtra mesta ali zbirke. Ujemanja se bodo pojavila, ko drug uporabnik išče nekaj, kar ti ponujaš, in obratno.</p>
+    </section>
+}
+else
+{
+    <div class="smart-match-list">
+        @for (var index = 0; index < Model.Matches.Count; index++)
+        {
+            var match = Model.Matches[index];
+            <article class="smart-match-card">
+                <header class="smart-match-header">
+                    <div class="match-rank">#@(index + 1)</div>
+                    <div class="avatar match-avatar">@match.DisplayName.Substring(0, 1).ToUpperInvariant()</div>
+                    <div class="match-person">
+                        <h2>@match.DisplayName</h2>
+                        <div class="match-meta">
+                            @if (!string.IsNullOrWhiteSpace(match.City)) { <span>⌖ @match.City</span> }
+                            @if (match.SameCity) { <span class="same-city">Isti kraj</span> }
+                            @if (match.TradesByMail) { <span>✉ Po pošti</span> }
+                            @if (match.TradesInPerson) { <span>● Osebno</span> }
+                        </div>
+                    </div>
+                    <div class="match-score">
+                        <strong>@match.BalancedTradeCount ↔ @match.BalancedTradeCount</strong>
+                        <small>uravnotežen predlog</small>
+                    </div>
+                </header>
+
+                <div class="match-exchange-grid">
+                    <section>
+                        <div class="exchange-title give"><span>TI DAŠ</span><strong>@match.YouGive.Count možnosti</strong></div>
+                        <div class="match-item-list">
+                            @foreach (var item in match.YouGive)
+                            {
+                                <a class="match-item" asp-controller="Items" asp-action="Details" asp-route-id="@item.ItemId">
+                                    <span class="match-thumb">
+                                        @if (!string.IsNullOrWhiteSpace(item.PrimaryImagePath)) { <img src="@item.PrimaryImagePath" alt="@item.Name" /> }
+                                        else { <i>↔</i> }
+                                    </span>
+                                    <span><b>@(item.OfficialCode ?? item.InternalCode)</b> @item.Name<small>@item.CollectionTitle@if (!string.IsNullOrWhiteSpace(item.Variant)) { <text> · @item.Variant</text> }</small></span>
+                                </a>
+                            }
+                        </div>
+                    </section>
+
+                    <div class="exchange-arrow">⇄</div>
+
+                    <section>
+                        <div class="exchange-title receive"><span>TI DOBIŠ</span><strong>@match.YouReceive.Count možnosti</strong></div>
+                        <div class="match-item-list">
+                            @foreach (var item in match.YouReceive)
+                            {
+                                <a class="match-item" asp-controller="Items" asp-action="Details" asp-route-id="@item.ItemId">
+                                    <span class="match-thumb">
+                                        @if (!string.IsNullOrWhiteSpace(item.PrimaryImagePath)) { <img src="@item.PrimaryImagePath" alt="@item.Name" /> }
+                                        else { <i>✓</i> }
+                                    </span>
+                                    <span><b>@(item.OfficialCode ?? item.InternalCode)</b> @item.Name<small>@item.CollectionTitle@if (!string.IsNullOrWhiteSpace(item.Variant)) { <text> · @item.Variant</text> }</small></span>
+                                </a>
+                            }
+                        </div>
+                    </section>
+                </div>
+
+                <footer class="smart-match-footer">
+                    <span>Predlagana osnova menjave: izberi do <strong>@match.BalancedTradeCount</strong> predmetov na vsaki strani.</span>
+                    <span class="phase4-note">Pošiljanje predloga menjave sledi v Fazi 4.</span>
+                </footer>
+            </article>
+        }
+    </div>
+}

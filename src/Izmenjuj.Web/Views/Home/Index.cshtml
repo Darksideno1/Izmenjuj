@@ -2,15 +2,15 @@
     ViewData["Title"] = "Domov";
 }
 <section class="hero">
-    <div><span class="eyebrow">DOBRODOŠEL NA</span><h1>izmenjuj.si</h1><p>Zbiraj. Menjaj. Dopolni zbirko.</p><div class="hero-actions"><a class="primary" asp-controller="Collections" asp-action="Index">Razišči zbirke →</a>@if (User.Identity?.IsAuthenticated == true) { <a class="secondary" asp-controller="Collections" asp-action="Create">Dodaj zbirko</a> } else { <a class="secondary" asp-controller="Account" asp-action="Register">Pridruži se</a> }</div></div>
+    <div><span class="eyebrow">DOBRODOŠEL NA</span><h1>izmenjuj.si</h1><p>Zbiraj. Menjaj. Dopolni zbirko.</p><div class="hero-actions"><a class="primary" asp-controller="Collections" asp-action="Index">Razišči zbirke →</a>@if (User.Identity?.IsAuthenticated == true) { <a class="secondary" asp-controller="Matches" asp-action="Index">Poišči ujemanja</a> } else { <a class="secondary" asp-controller="Account" asp-action="Register">Pridruži se</a> }</div></div>
     <div class="card-fan"><div class="sample-card sport">Šport</div><div class="sample-card nature">Živali</div><div class="sample-card fantasy">Fantazija</div></div>
 </section>
 
 <section class="stats">
-    <article><span class="stat-icon blue">▤</span><div><small>Zbirke</small><strong>F1</strong><em>katalog aktiven</em></div></article>
-    <article><span class="stat-icon red">□</span><div><small>Manjkajoče</small><strong>F2</strong><em>naslednja faza</em></div></article>
-    <article><span class="stat-icon green">⇄</span><div><small>Za menjavo</small><strong>F2</strong><em>naslednja faza</em></div></article>
-    <article><span class="stat-icon violet">◇</span><div><small>Ujemanja</small><strong>F3</strong><em>v načrtu</em></div></article>
+    <article><span class="stat-icon blue">▤</span><div><small>Zbirke</small><strong>F1</strong><em>aktivno</em></div></article>
+    <article><span class="stat-icon red">□</span><div><small>Manjkajoče</small><strong>F2</strong><em>aktivno</em></div></article>
+    <article><span class="stat-icon green">⇄</span><div><small>Za menjavo</small><strong>F2</strong><em>aktivno</em></div></article>
+    <article><span class="stat-icon violet">◇</span><div><small>Ujemanja</small><strong>F3</strong><em>aktivno</em></div></article>
 </section>
 
 <div class="dashboard-grid">
@@ -24,9 +24,9 @@
 </section>
 
 <section class="panel matches" id="matches">
-    <header><h2>Razvojni status</h2></header>
-    <article class="match"><div class="avatar">1</div><div><h3>Računi in profili</h3><strong>Aktivno</strong><p>Registracija, prijava in nastavitve menjave</p></div></article>
-    <article class="match"><div class="avatar">2</div><div><h3>Albumi in galerije</h3><strong>Aktivno</strong><p>Naslovnica, podatki in dodatne slike</p></div></article>
-    <article class="match"><div class="avatar">3</div><div><h3>Predmeti in ujemanja</h3><p>Sledijo v naslednjih fazah</p></div></article>
+    <header><h2>Pametno ujemanje</h2>@if (User.Identity?.IsAuthenticated == true) { <a asp-controller="Matches" asp-action="Index">Odpri ujemanja →</a> }</header>
+    <article class="match"><div class="avatar">1</div><div><h3>Obojestranska korist</h3><strong>Aktivno</strong><p>Ti imaš, kar drugi išče, in obratno.</p></div></article>
+    <article class="match"><div class="avatar">2</div><div><h3>Filtri menjave</h3><strong>Aktivno</strong><p>Zbirka, kraj, pošta ali osebna menjava.</p></div></article>
+    <article class="match"><div class="avatar">3</div><div><h3>Uravnotežen predlog</h3><strong>Aktivno</strong><p>Najprej se prikažejo najbolj uravnotežene menjave.</p></div></article>
 </section>
 </div>

@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - Izmenjuj.si</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/phase2.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/phase3.css" asp-append-version="true" />
 </head>
 <body>
 <header class="topbar">
@@ -14,14 +15,15 @@
     <nav class="topnav">
         <a asp-controller="Home" asp-action="Index">Domov</a>
         <a asp-controller="Collections" asp-action="Index">Albumi</a>
-        <a href="#">Menjave</a>
         @if (User.Identity?.IsAuthenticated == true)
         {
+            <a asp-controller="Matches" asp-action="Index">Ujemanja</a>
             <a asp-controller="Account" asp-action="Profile">Profil</a>
             <form asp-controller="Account" asp-action="Logout" method="post"><button class="nav-button" type="submit">Odjava</button></form>
         }
         else
         {
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Matches">Ujemanja</a>
             <a asp-controller="Account" asp-action="Login">Prijava</a>
             <a class="nav-register" asp-controller="Account" asp-action="Register">Registracija</a>
         }
@@ -31,7 +33,14 @@
     <aside class="sidebar">
         <a asp-controller="Home" asp-action="Index">⌂ <span>Domov</span></a>
         <a asp-controller="Collections" asp-action="Index">▣ <span>Zbirke</span></a>
-        <a href="#">⇄ <span>Menjave</span></a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="Matches" asp-action="Index">⇄ <span>Ujemanja</span></a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Matches">⇄ <span>Ujemanja</span></a>
+        }
         <a href="#">◌ <span>Sporočila</span></a>
         <a href="#">◎ <span>Skupnost</span></a>
         @if (User.Identity?.IsAuthenticated == true)
