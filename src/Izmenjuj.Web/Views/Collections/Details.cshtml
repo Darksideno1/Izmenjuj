@@ -2,6 +2,10 @@
 @{
     ViewData["Title"] = Model.Title;
     var canEdit = ViewData["CanEdit"] as bool? == true;
+    var orderedItems = Model.Items
+        .OrderBy(x => string.IsNullOrWhiteSpace(x.OfficialCode) ? x.InternalCode : x.OfficialCode)
+        .ThenBy(x => x.Name)
+        .ToList();
 }
 @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
 <section class="collection-hero">
@@ -20,10 +24,18 @@
             @if (!string.IsNullOrWhiteSpace(Model.Country)) { <span>🌍 @Model.Country</span> }
             <span>▦ @Model.Items.Count predmetov</span>
         </div>
-        @if (canEdit)
-        {
-            <div class="hero-actions"><a class="primary button" asp-action="Edit" asp-route-id="@Model.Id">Uredi zbirko</a><a class="danger-link" asp-action="Delete" asp-route-id="@Model.Id">Izbriši</a></div>
-        }
+        <div class="hero-actions">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a class="primary button" asp-controller="Inventory" asp-action="Collection" asp-route-id="@Model.Id">Moja zbirka</a>
+            }
+            @if (canEdit)
+            {
+                <a class="secondary button" asp-action="Edit" asp-route-id="@Model.Id">Uredi zbirko</a>
+                <a class="secondary button" asp-controller="Items" asp-action="Create" asp-route-collectionId="@Model.Id">Dodaj predmet</a>
+                <a class="danger-link" asp-action="Delete" asp-route-id="@Model.Id">Izbriši</a>
+            }
+        </div>
     </div>
 </section>
 @if (Model.Images.Count > 0)
@@ -38,7 +50,44 @@
         </div>
     </section>
 }
-<section class="panel phase-preview">
-    <header><h2>Predmeti v zbirki</h2><span>Faza 2</span></header>
-    <p>Naslednji korak bo vizualna mreža sličic, kart ali figuric z oznakami <strong>Imam</strong>, <strong>Iščem</strong> in <strong>Za menjavo</strong>. Pri figuricah brez uradne številke bo ključna fotografija in interna oznaka.</p>
+
+<section class="panel collection-items-panel">
+    <header>
+        <div><h2>Predmeti v zbirki</h2><span>@orderedItems.Count</span></div>
+        @if (canEdit) { <a asp-controller="Items" asp-action="Create" asp-route-collectionId="@Model.Id">＋ Dodaj predmet</a> }
+    </header>
+
+    @if (orderedItems.Count == 0)
+    {
+        <div class="empty-state compact-empty"><h3>Zbirka še nima predmetov</h3><p>Dodaj prve sličice, karte ali figurice. Predmeti brez uradne številke dobijo interno oznako samodejno.</p></div>
+    }
+    else
+    {
+        <div class="collectible-grid">
+            @foreach (var item in orderedItems)
+            {
+                <article class="collectible-card">
+                    <a class="collectible-image" asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">
+                        @if (!string.IsNullOrWhiteSpace(item.PrimaryImagePath))
+                        {
+                            <img src="@item.PrimaryImagePath" alt="@item.Name" />
+                        }
+                        else
+                        {
+                            <div class="item-placeholder">◇</div>
+                        }
+                    </a>
+                    <div class="collectible-copy">
+                        <span class="item-code">@(item.OfficialCode ?? item.InternalCode)</span>
+                        <a class="collectible-name" asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">@item.Name</a>
+                        @if (!string.IsNullOrWhiteSpace(item.Variant)) { <small>@item.Variant</small> }
+                    </div>
+                    @if (canEdit)
+                    {
+                        <a class="card-edit-link" asp-controller="Items" asp-action="Edit" asp-route-id="@item.Id">Uredi</a>
+                    }
+                </article>
+            }
+        </div>
+    }
 </section>

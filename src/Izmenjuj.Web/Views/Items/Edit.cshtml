@@ -1,0 +1,60 @@
+@model ItemEditViewModel
+@{
+    var editing = Model.Id != Guid.Empty;
+    ViewData["Title"] = editing ? "Uredi predmet" : "Dodaj predmet";
+}
+<section class="form-shell wide-form">
+    <div class="page-heading">
+        <div><span class="page-kicker">@Model.CollectionTitle</span><h1>@ViewData["Title"]</h1><p>Dodaj podatke, po katerih bo zbiratelj predmet zanesljivo prepoznal.</p></div>
+        <a class="secondary button" asp-controller="Collections" asp-action="Details" asp-route-id="@Model.CollectionId">Nazaj v zbirko</a>
+    </div>
+
+    <form asp-action="@(editing ? "Edit" : "Create")" method="post" enctype="multipart/form-data" class="panel form-panel">
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="CollectionId" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="form-grid two">
+            <label><span asp-for="Name"></span><input asp-for="Name" /><small><span asp-validation-for="Name"></span></small></label>
+            <label><span asp-for="OfficialCode"></span><input asp-for="OfficialCode" placeholder="npr. 127, A-14 ..." /><small>Če predmet nima uradne oznake, pusti prazno.</small></label>
+            <label><span asp-for="InternalCode"></span><input asp-for="InternalCode" placeholder="ustvari se samodejno" /><small>Stabilna interna oznaka za ujemanje; običajno je ni treba spreminjati.</small></label>
+            <label><span asp-for="Variant"></span><input asp-for="Variant" placeholder="npr. foil, rdeča kapa, različica B" /></label>
+        </div>
+
+        <label class="full-field"><span asp-for="Description"></span><textarea asp-for="Description" rows="5"></textarea></label>
+
+        <div class="media-fields">
+            <label><span asp-for="PrimaryImage"></span><input asp-for="PrimaryImage" type="file" accept="image/jpeg,image/png,image/webp" /><small>JPG, PNG ali WEBP, največ 6 MB.</small></label>
+            <label><span asp-for="GalleryImages"></span><input asp-for="GalleryImages" type="file" multiple accept="image/jpeg,image/png,image/webp" /><small>Spredaj, zadaj, spodaj, embalaža ...</small></label>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.CurrentPrimaryImagePath))
+        {
+            <section class="current-media"><h2>Trenutna glavna slika</h2><img class="item-editor-primary" src="@Model.CurrentPrimaryImagePath" alt="Glavna slika" /></section>
+        }
+
+        @if (Model.CurrentImages.Count > 0)
+        {
+            <section class="current-media">
+                <h2>Dodatne slike</h2>
+                <div class="gallery-grid compact-gallery">
+                    @foreach (var image in Model.CurrentImages.OrderBy(x => x.SortOrder))
+                    {
+                        <figure>
+                            <img src="@image.ImagePath" alt="Dodatna slika" />
+                            @if (editing)
+                            {
+                                <button class="mini-danger" type="submit" formaction="@Url.Action("DeleteImage", "Items", new { id = Model.Id, imageId = image.Id })" formmethod="post">Odstrani</button>
+                            }
+                        </figure>
+                    }
+                </div>
+            </section>
+        }
+
+        <div class="form-actions">
+            <button class="primary button" type="submit">@(editing ? "Shrani predmet" : "Dodaj predmet")</button>
+            <a class="secondary button" asp-controller="Collections" asp-action="Details" asp-route-id="@Model.CollectionId">Prekliči</a>
+        </div>
+    </form>
+</section>

@@ -1,0 +1,52 @@
+@model CollectibleItem
+@{
+    ViewData["Title"] = Model.Name;
+    var canEdit = ViewData["CanEdit"] as bool? == true;
+}
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+<section class="item-detail-layout">
+    <div class="item-detail-image">
+        @if (!string.IsNullOrWhiteSpace(Model.PrimaryImagePath))
+        {
+            <img src="@Model.PrimaryImagePath" alt="@Model.Name" />
+        }
+        else
+        {
+            <div class="cover-placeholder large">◇</div>
+        }
+    </div>
+    <div class="item-detail-copy">
+        <div class="page-kicker"><a asp-controller="Collections" asp-action="Details" asp-route-id="@Model.CollectionId">@Model.Collection.Title</a></div>
+        <h1>@Model.Name</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.Variant)) { <div class="variant-badge">@Model.Variant</div> }
+        <div class="meta-chips">
+            @if (!string.IsNullOrWhiteSpace(Model.OfficialCode)) { <span>Oznaka: @Model.OfficialCode</span> }
+            <span class="subtle-chip">Interno: @Model.InternalCode</span>
+        </div>
+        <p>@(Model.Description ?? "Opis predmeta še ni vpisan.")</p>
+        <div class="hero-actions">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a class="primary button" asp-controller="Inventory" asp-action="Collection" asp-route-id="@Model.CollectionId">Moja evidenca</a>
+            }
+            @if (canEdit)
+            {
+                <a class="secondary button" asp-action="Edit" asp-route-id="@Model.Id">Uredi predmet</a>
+                <a class="danger-link" asp-action="Delete" asp-route-id="@Model.Id">Izbriši</a>
+            }
+        </div>
+    </div>
+</section>
+
+@if (Model.Images.Count > 0)
+{
+    <section class="panel gallery-panel">
+        <header><h2>Dodatne slike</h2><span>@Model.Images.Count</span></header>
+        <div class="gallery-grid">
+            @foreach (var image in Model.Images.OrderBy(x => x.SortOrder))
+            {
+                <figure><img src="@image.ImagePath" alt="@Model.Name" />@if (!string.IsNullOrWhiteSpace(image.Caption)) { <figcaption>@image.Caption</figcaption> }</figure>
+            }
+        </div>
+    </section>
+}

@@ -247,6 +247,15 @@ public sealed class CollectionsController(
             await imageStorage.DeleteAsync(image.ImagePath, cancellationToken);
         }
 
+        foreach (var item in collection.Items)
+        {
+            await imageStorage.DeleteAsync(item.PrimaryImagePath, cancellationToken);
+            foreach (var image in item.Images)
+            {
+                await imageStorage.DeleteAsync(image.ImagePath, cancellationToken);
+            }
+        }
+
         db.Collections.Remove(collection);
         await db.SaveChangesAsync(cancellationToken);
         TempData["Success"] = "Zbirka je izbrisana.";
@@ -264,6 +273,7 @@ public sealed class CollectionsController(
         return await db.Collections
             .Include(x => x.Images)
             .Include(x => x.Items)
+                .ThenInclude(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == id && x.CreatedByUserId == userId, cancellationToken);
     }
 
