@@ -36,7 +36,8 @@ public sealed class ItemEditViewModel
 
 public sealed class CollectionInventoryViewModel
 {
-    public required Collection Collection { get; set; }
+    public Guid CollectionId { get; set; }
+    public Collection Collection { get; set; } = null!;
     public List<InventoryRowViewModel> Rows { get; set; } = [];
     public int OwnedItems { get; set; }
     public int WantedItems { get; set; }
