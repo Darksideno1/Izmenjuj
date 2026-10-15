@@ -28,6 +28,9 @@ public sealed class CollectionEditViewModel
     [Display(Name = "Tip zbirke")]
     public CollectionType Type { get; set; } = CollectionType.Stickers;
 
+    [Display(Name = "Prikaži slike predmetov v seznamih")]
+    public bool ShowItemImages { get; set; }
+
     [Display(Name = "Javno objavljena zbirka")]
     public bool IsPublished { get; set; } = true;
 
