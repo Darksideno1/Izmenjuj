@@ -24,9 +24,9 @@
 </section>
 
 <section class="panel matches" id="matches">
-    <header><h2>Pametno ujemanje</h2>@if (User.Identity?.IsAuthenticated == true) { <a asp-controller="Matches" asp-action="Index">Odpri ujemanja →</a> }</header>
-    <article class="match"><div class="avatar">1</div><div><h3>Obojestranska korist</h3><strong>Aktivno</strong><p>Ti imaš, kar drugi išče, in obratno.</p></div></article>
-    <article class="match"><div class="avatar">2</div><div><h3>Filtri menjave</h3><strong>Aktivno</strong><p>Zbirka, kraj, pošta ali osebna menjava.</p></div></article>
-    <article class="match"><div class="avatar">3</div><div><h3>Uravnotežen predlog</h3><strong>Aktivno</strong><p>Najprej se prikažejo najbolj uravnotežene menjave.</p></div></article>
+    <header><h2>Menjave in komunikacija</h2>@if (User.Identity?.IsAuthenticated == true) { <a asp-controller="Trades" asp-action="Index">Odpri menjave →</a> }</header>
+    <article class="match"><div class="avatar">4</div><div><h3>Predlog in protipredlog</h3><strong>Aktivno</strong><p>Sprejmi, zavrni ali prilagodi konkretne predmete.</p></div></article>
+    <article class="match"><div class="avatar">✉</div><div><h3>Zasebni pogovor</h3><strong>Aktivno</strong><p>Sporočila so vezana na posamezno menjavo.</p></div></article>
+    <article class="match"><div class="avatar">✓</div><div><h3>Varen zaključek</h3><strong>Aktivno</strong><p>Po potrditvi obeh se evidence samodejno posodobijo.</p></div></article>
 </section>
 </div>

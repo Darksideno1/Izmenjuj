@@ -1,0 +1,66 @@
+@model TradeIndexViewModel
+@{
+    ViewData["Title"] = "Menjave";
+}
+
+<section class="page-head trade-page-head">
+    <div>
+        <div class="page-kicker">MENJAVE</div>
+        <h1>Predlogi in zgodovina</h1>
+        <p>Na enem mestu spremljaj aktivne predloge, dogovorjene menjave in zaključeno zgodovino.</p>
+    </div>
+    <a class="primary button" asp-controller="Matches" asp-action="Index">Poišči ujemanja</a>
+</section>
+
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+@if (TempData["Error"] is string error) { <div class="notice trade-error">@error</div> }
+
+<section class="panel trade-section">
+    <header><h2>Aktivne menjave</h2><span>@Model.Active.Count</span></header>
+    @if (Model.Active.Count == 0)
+    {
+        <div class="trade-empty-inline">Trenutno nimaš aktivnih predlogov. Najprej poišči obojestransko ujemanje.</div>
+    }
+    else
+    {
+        <div class="trade-list">
+            @foreach (var trade in Model.Active)
+            {
+                <a class="trade-row" asp-action="Details" asp-route-id="@trade.Id">
+                    <div class="avatar">@trade.OtherDisplayName.Substring(0, 1).ToUpperInvariant()</div>
+                    <div class="trade-row-main">
+                        <strong>@trade.OtherDisplayName</strong>
+                        <span>@if (!string.IsNullOrWhiteSpace(trade.OtherCity)) { <text>@trade.OtherCity · </text> }@trade.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</span>
+                    </div>
+                    <div class="trade-row-exchange"><b>@trade.YouGiveCount</b> ⇄ <b>@trade.YouReceiveCount</b></div>
+                    <span class="trade-status status-@trade.Status.ToString().ToLowerInvariant()">@trade.StatusText</span>
+                </a>
+            }
+        </div>
+    }
+</section>
+
+<section class="panel trade-section">
+    <header><h2>Zgodovina</h2><span>@Model.History.Count</span></header>
+    @if (Model.History.Count == 0)
+    {
+        <div class="trade-empty-inline">Zaključenih, zavrnjenih ali preklicanih menjav še ni.</div>
+    }
+    else
+    {
+        <div class="trade-list">
+            @foreach (var trade in Model.History)
+            {
+                <a class="trade-row" asp-action="Details" asp-route-id="@trade.Id">
+                    <div class="avatar">@trade.OtherDisplayName.Substring(0, 1).ToUpperInvariant()</div>
+                    <div class="trade-row-main">
+                        <strong>@trade.OtherDisplayName</strong>
+                        <span>@trade.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</span>
+                    </div>
+                    <div class="trade-row-exchange"><b>@trade.YouGiveCount</b> ⇄ <b>@trade.YouReceiveCount</b></div>
+                    <span class="trade-status status-@trade.Status.ToString().ToLowerInvariant()">@trade.StatusText</span>
+                </a>
+            }
+        </div>
+    }
+</section>

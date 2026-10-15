@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/phase2.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/phase3.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/phase4.css" asp-append-version="true" />
 </head>
 <body>
 <header class="topbar">
@@ -18,6 +19,7 @@
         @if (User.Identity?.IsAuthenticated == true)
         {
             <a asp-controller="Matches" asp-action="Index">Ujemanja</a>
+            <a asp-controller="Trades" asp-action="Index">Menjave</a>
             <a asp-controller="Account" asp-action="Profile">Profil</a>
             <form asp-controller="Account" asp-action="Logout" method="post"><button class="nav-button" type="submit">Odjava</button></form>
         }
@@ -36,12 +38,13 @@
         @if (User.Identity?.IsAuthenticated == true)
         {
             <a asp-controller="Matches" asp-action="Index">⇄ <span>Ujemanja</span></a>
+            <a asp-controller="Trades" asp-action="Index">◆ <span>Menjave</span></a>
+            <a asp-controller="Trades" asp-action="Index">◌ <span>Sporočila</span></a>
         }
         else
         {
             <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Matches">⇄ <span>Ujemanja</span></a>
         }
-        <a href="#">◌ <span>Sporočila</span></a>
         <a href="#">◎ <span>Skupnost</span></a>
         @if (User.Identity?.IsAuthenticated == true)
         {

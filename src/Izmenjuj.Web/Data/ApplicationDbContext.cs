@@ -14,6 +14,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<UserInventory> UserInventories => Set<UserInventory>();
     public DbSet<Trade> Trades => Set<Trade>();
     public DbSet<TradeLine> TradeLines => Set<TradeLine>();
+    public DbSet<TradeMessage> TradeMessages => Set<TradeMessage>();
+    public DbSet<TradeEvent> TradeEvents => Set<TradeEvent>();
+    public DbSet<TradeRating> TradeRatings => Set<TradeRating>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -33,10 +36,50 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             .HasIndex(x => new { x.UserId, x.CollectibleItemId, x.State })
             .IsUnique();
 
+        builder.Entity<Trade>()
+            .HasIndex(x => new { x.ProposerUserId, x.Status, x.CreatedUtc });
+
+        builder.Entity<Trade>()
+            .HasIndex(x => new { x.RecipientUserId, x.Status, x.CreatedUtc });
+
         builder.Entity<TradeLine>()
             .HasOne(x => x.Trade)
             .WithMany(x => x.Lines)
             .HasForeignKey(x => x.TradeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TradeLine>()
+            .HasOne(x => x.Item)
+            .WithMany()
+            .HasForeignKey(x => x.CollectibleItemId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<TradeMessage>()
+            .HasOne(x => x.Trade)
+            .WithMany(x => x.Messages)
+            .HasForeignKey(x => x.TradeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TradeMessage>()
+            .HasIndex(x => new { x.TradeId, x.SentUtc });
+
+        builder.Entity<TradeEvent>()
+            .HasOne(x => x.Trade)
+            .WithMany(x => x.Events)
+            .HasForeignKey(x => x.TradeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TradeEvent>()
+            .HasIndex(x => new { x.TradeId, x.CreatedUtc });
+
+        builder.Entity<TradeRating>()
+            .HasOne(x => x.Trade)
+            .WithMany(x => x.Ratings)
+            .HasForeignKey(x => x.TradeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TradeRating>()
+            .HasIndex(x => new { x.TradeId, x.FromUserId })
+            .IsUnique();
     }
 }

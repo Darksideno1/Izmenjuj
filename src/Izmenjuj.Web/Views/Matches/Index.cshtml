@@ -128,7 +128,7 @@ else
 
                 <footer class="smart-match-footer">
                     <span>Predlagana osnova menjave: izberi do <strong>@match.BalancedTradeCount</strong> predmetov na vsaki strani.</span>
-                    <span class="phase4-note">Pošiljanje predloga menjave sledi v Fazi 4.</span>
+                    <a class="primary button" asp-controller="Trades" asp-action="Create" asp-route-candidateUserId="@match.UserId">Predlagaj menjavo</a>
                 </footer>
             </article>
         }
