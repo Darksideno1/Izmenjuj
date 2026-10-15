@@ -10,6 +10,7 @@
         TradeStatus.Cancelled => "Preklicano",
         _ => Model.Status.ToString()
     };
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 
 @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
@@ -26,6 +27,11 @@
         <a class="secondary button" asp-action="Index">Vse menjave</a>
     </div>
 </section>
+
+<div class="trade-safety-actions">
+    <a asp-controller="Moderation" asp-action="Report" asp-route-userId="@Model.OtherUserId" asp-route-tradeId="@Model.Id">⚑ Prijavi uporabnika</a>
+    <form asp-controller="Moderation" asp-action="Block" method="post"><input type="hidden" name="userId" value="@Model.OtherUserId" /><input type="hidden" name="returnUrl" value="@returnUrl" /><button type="submit">Blokiraj prihodnja ujemanja</button></form>
+</div>
 
 @if (Model.Status == TradeStatus.Proposed)
 {
