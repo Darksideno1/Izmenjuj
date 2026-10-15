@@ -1,0 +1,90 @@
+@model TradeEditViewModel
+@{
+    ViewData["Title"] = Model.IsCounter ? "Protipredlog" : "Predlagaj menjavo";
+}
+
+<section class="page-head">
+    <div>
+        <div class="page-kicker">@(Model.IsCounter ? "PROTIPREDLOG" : "PREDLOG MENJAVE")</div>
+        <h1>@(Model.IsCounter ? "Spremeni predlog z " : "Predlagaj menjavo z ")@Model.OtherDisplayName</h1>
+        <p>Izberi predmete na obeh straneh. Pred pošiljanjem sistem ponovno preveri, ali so še na voljo.</p>
+    </div>
+</section>
+
+<form class="trade-edit-form" method="post" asp-action="@(Model.IsCounter ? "Counter" : "Create")">
+    @Html.AntiForgeryToken()
+    <input asp-for="TradeId" type="hidden" />
+    <input asp-for="OtherUserId" type="hidden" />
+    <input asp-for="IsCounter" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="validation"></div>
+
+    <div class="trade-offer-grid">
+        <section class="panel offer-column">
+            <header><h2>Ti daš</h2><span>@Model.MyItems.Count možnosti</span></header>
+            @if (Model.MyItems.Count == 0)
+            {
+                <p class="muted">Nimaš predmetov za menjavo, ki jih ta uporabnik išče.</p>
+            }
+            else
+            {
+                @for (var i = 0; i < Model.MyItems.Count; i++)
+                {
+                    <div class="offer-item">
+                        <input asp-for="MyItems[i].ItemId" type="hidden" />
+                        <label class="offer-select"><input asp-for="MyItems[i].Selected" /><span></span></label>
+                        <span class="match-thumb">
+                            @if (!string.IsNullOrWhiteSpace(Model.MyItems[i].PrimaryImagePath)) { <img src="@Model.MyItems[i].PrimaryImagePath" alt="@Model.MyItems[i].Name" /> }
+                            else { <i>↔</i> }
+                        </span>
+                        <div class="offer-item-main"><b>@Model.MyItems[i].Code · @Model.MyItems[i].Name</b><small>@Model.MyItems[i].CollectionTitle@if (!string.IsNullOrWhiteSpace(Model.MyItems[i].Variant)) { <text> · @Model.MyItems[i].Variant</text> }</small></div>
+                        <label class="offer-qty"><span>Količina</span><input asp-for="MyItems[i].Quantity" type="number" min="1" max="@Model.MyItems[i].MaxQuantity" /></label>
+                    </div>
+                }
+            }
+        </section>
+
+        <div class="trade-big-arrow">⇄</div>
+
+        <section class="panel offer-column">
+            <header><h2>Ti dobiš</h2><span>@Model.TheirItems.Count možnosti</span></header>
+            @if (Model.TheirItems.Count == 0)
+            {
+                <p class="muted">Ta uporabnik trenutno nima za menjavo ničesar, kar iščeš.</p>
+            }
+            else
+            {
+                @for (var i = 0; i < Model.TheirItems.Count; i++)
+                {
+                    <div class="offer-item">
+                        <input asp-for="TheirItems[i].ItemId" type="hidden" />
+                        <label class="offer-select"><input asp-for="TheirItems[i].Selected" /><span></span></label>
+                        <span class="match-thumb">
+                            @if (!string.IsNullOrWhiteSpace(Model.TheirItems[i].PrimaryImagePath)) { <img src="@Model.TheirItems[i].PrimaryImagePath" alt="@Model.TheirItems[i].Name" /> }
+                            else { <i>✓</i> }
+                        </span>
+                        <div class="offer-item-main"><b>@Model.TheirItems[i].Code · @Model.TheirItems[i].Name</b><small>@Model.TheirItems[i].CollectionTitle@if (!string.IsNullOrWhiteSpace(Model.TheirItems[i].Variant)) { <text> · @Model.TheirItems[i].Variant</text> }</small></div>
+                        <label class="offer-qty"><span>Količina</span><input asp-for="TheirItems[i].Quantity" type="number" min="1" max="@Model.TheirItems[i].MaxQuantity" /></label>
+                    </div>
+                }
+            }
+        </section>
+    </div>
+
+    <section class="panel trade-message-draft">
+        <label asp-for="Message">Sporočilo ob predlogu <span class="muted">(neobvezno)</span></label>
+        <textarea asp-for="Message" rows="4" maxlength="2000" placeholder="Npr. Predlagam menjavo po pošti ..."></textarea>
+        <span asp-validation-for="Message" class="validation"></span>
+    </section>
+
+    <div class="form-actions trade-edit-actions">
+        @if (Model.TradeId is not null)
+        {
+            <a class="secondary button" asp-action="Details" asp-route-id="@Model.TradeId">Nazaj</a>
+        }
+        else
+        {
+            <a class="secondary button" asp-controller="Matches" asp-action="Index">Nazaj na ujemanja</a>
+        }
+        <button class="primary button" type="submit">@(Model.IsCounter ? "Pošlji protipredlog" : "Pošlji predlog")</button>
+    </div>
+</form>
