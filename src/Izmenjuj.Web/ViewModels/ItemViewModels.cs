@@ -1,4 +1,5 @@
 using Izmenjuj.Web.Domain;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace Izmenjuj.Web.ViewModels;
@@ -7,6 +8,8 @@ public sealed class ItemEditViewModel
 {
     public Guid Id { get; set; }
     public Guid CollectionId { get; set; }
+
+    [ValidateNever]
     public string CollectionTitle { get; set; } = string.Empty;
 
     [Required, StringLength(160, MinimumLength = 1), Display(Name = "Naziv predmeta")]
@@ -31,13 +34,18 @@ public sealed class ItemEditViewModel
     public List<IFormFile> GalleryImages { get; set; } = [];
 
     public string? CurrentPrimaryImagePath { get; set; }
+
+    [ValidateNever]
     public List<ItemImage> CurrentImages { get; set; } = [];
 }
 
 public sealed class CollectionInventoryViewModel
 {
     public Guid CollectionId { get; set; }
+
+    [ValidateNever]
     public Collection Collection { get; set; } = null!;
+
     public List<InventoryRowViewModel> Rows { get; set; } = [];
     public int OwnedItems { get; set; }
     public int WantedItems { get; set; }
@@ -49,10 +57,20 @@ public sealed class CollectionInventoryViewModel
 public sealed class InventoryRowViewModel
 {
     public Guid ItemId { get; set; }
+
+    [ValidateNever]
     public string Name { get; set; } = string.Empty;
+
+    [ValidateNever]
     public string? OfficialCode { get; set; }
+
+    [ValidateNever]
     public string InternalCode { get; set; } = string.Empty;
+
+    [ValidateNever]
     public string? Variant { get; set; }
+
+    [ValidateNever]
     public string? PrimaryImagePath { get; set; }
 
     [Range(0, 999), Display(Name = "Imam")]
