@@ -1,0 +1,34 @@
+@model IReadOnlyList<Collection>
+@{
+    ViewData["Title"] = "Zbirke";
+}
+<section class="page-head">
+    <div><div class="page-kicker">KATALOG</div><h1>Albumi in zbirke</h1><p>Sličice, karte, figurice in druge zbirke na enem mestu.</p></div>
+    @if (User.Identity?.IsAuthenticated == true) { <a class="primary button" asp-action="Create">＋ Dodaj zbirko</a> }
+</section>
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+@if (Model.Count == 0)
+{
+    <div class="empty-state"><strong>Zaenkrat še ni nobene zbirke.</strong><span>Prijavljeni uporabniki lahko dodajo prvo.</span></div>
+}
+else
+{
+    <div class="collection-grid">
+    @foreach (var item in Model)
+    {
+        <article class="collection-card">
+            <a asp-action="Details" asp-route-id="@item.Id" class="collection-cover">
+                @if (!string.IsNullOrWhiteSpace(item.CoverImagePath)) { <img src="@item.CoverImagePath" alt="@item.Title" /> }
+                else { <div class="cover-placeholder">↔</div> }
+                @if (!item.IsPublished) { <span class="draft-badge">Osnutek</span> }
+            </a>
+            <div class="collection-card-body">
+                <div class="collection-type">@item.Type</div>
+                <h2><a asp-action="Details" asp-route-id="@item.Id">@item.Title</a></h2>
+                <p>@(item.Subtitle ?? item.Description ?? "Zbirateljska zbirka")</p>
+                <footer><span>@(item.Year?.ToString() ?? "Leto ni znano")</span><span>@item.Items.Count predmetov</span></footer>
+            </div>
+        </article>
+    }
+    </div>
+}

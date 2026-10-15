@@ -1,0 +1,18 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Profil";
+}
+<section class="page-head">
+    <div><div class="page-kicker">MOJ RAČUN</div><h1>Profil</h1><p>Podatki, ki pomagajo pri iskanju primernih načinov menjave.</p></div>
+</section>
+<div class="form-card narrow">
+    @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+    <form asp-action="Profile" method="post" class="form-grid">
+        <div asp-validation-summary="ModelOnly" class="validation full"></div>
+        <label><span>E-pošta</span><input value="@Model.Email" disabled /></label>
+        <label><span asp-for="DisplayName"></span><input asp-for="DisplayName" /><small asp-validation-for="DisplayName"></small></label>
+        <label><span asp-for="City"></span><input asp-for="City" placeholder="npr. Maribor" /><small asp-validation-for="City"></small></label>
+        <div class="check-row full"><label><input asp-for="TradesByMail" /> <span asp-for="TradesByMail"></span></label><label><input asp-for="TradesInPerson" /> <span asp-for="TradesInPerson"></span></label></div>
+        <div class="form-actions full"><button class="primary button" type="submit">Shrani profil</button></div>
+    </form>
+</div>

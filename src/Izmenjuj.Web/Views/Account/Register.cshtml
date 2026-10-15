@@ -1,0 +1,22 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Registracija";
+}
+<section class="auth-wrap">
+    <div class="auth-card">
+        <div class="page-kicker">NOV RAČUN</div>
+        <h1>Pridruži se Izmenjuj.si</h1>
+        <p class="muted">Ustvari profil, dodaj zbirke in pripravi podatke za prihodnje samodejne menjave.</p>
+        <form asp-action="Register" method="post" class="form-grid single">
+            <div asp-validation-summary="ModelOnly" class="validation"></div>
+            <label><span asp-for="DisplayName"></span><input asp-for="DisplayName" autocomplete="name" /><small asp-validation-for="DisplayName"></small></label>
+            <label><span asp-for="Email"></span><input asp-for="Email" autocomplete="email" /><small asp-validation-for="Email"></small></label>
+            <label><span asp-for="City"></span><input asp-for="City" placeholder="npr. Ljubljana" /><small asp-validation-for="City"></small></label>
+            <label><span asp-for="Password"></span><input asp-for="Password" autocomplete="new-password" /><small asp-validation-for="Password"></small></label>
+            <label><span asp-for="ConfirmPassword"></span><input asp-for="ConfirmPassword" autocomplete="new-password" /><small asp-validation-for="ConfirmPassword"></small></label>
+            <div class="check-row"><label><input asp-for="TradesByMail" /> <span asp-for="TradesByMail"></span></label><label><input asp-for="TradesInPerson" /> <span asp-for="TradesInPerson"></span></label></div>
+            <button class="primary button" type="submit">Ustvari račun</button>
+        </form>
+        <p class="auth-footer">Že imaš račun? <a asp-action="Login">Prijavi se</a></p>
+    </div>
+</section>
