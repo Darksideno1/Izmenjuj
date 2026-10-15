@@ -173,7 +173,6 @@ public sealed class TradesController(
         var otherId = OtherUserId(trade, userId);
         users.TryGetValue(otherId, out var other);
 
-        var lastOfferActor = LastOfferActor(trade);
         var completionActors = trade.Events
             .Where(x => x.Type == TradeEventType.CompletionConfirmed)
             .Select(x => x.ActorUserId)
@@ -189,7 +188,7 @@ public sealed class TradesController(
             OtherDisplayName = DisplayName(other),
             OtherCity = other?.City,
             IsProposer = trade.ProposerUserId == userId,
-            LastOfferActorUserId = lastOfferActor,
+            LastOfferActorUserId = LastOfferActor(trade),
             YouGive = trade.Lines.Where(x => x.FromUserId == userId).Select(ToLine).ToList(),
             YouReceive = trade.Lines.Where(x => x.FromUserId != userId).Select(ToLine).ToList(),
             YouConfirmedCompletion = completionActors.Contains(userId),
@@ -245,7 +244,7 @@ public sealed class TradesController(
         trade.Status = TradeStatus.Accepted;
         trade.Events.Add(new TradeEvent { ActorUserId = userId, Type = TradeEventType.Accepted });
         await db.SaveChangesAsync(cancellationToken);
-        TempData["Success"] = "Predlog je sprejet. Po izvedeni menjavi jo morata zaključek potrditi oba.";
+        TempData["Success"] = "Predlog je sprejet. Po izvedeni menjavi morata zaključek potrditi oba.";
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -308,32 +307,49 @@ public sealed class TradesController(
     {
         var userId = userManager.GetUserId(User);
         if (userId is null) return Challenge();
-        var trade = await LoadTrade(id, cancellationToken, tracking: true);
-        if (!IsParticipant(trade, userId) || trade!.Status != TradeStatus.Accepted) return NotFound();
-
-        if (trade.Events.Any(x => x.Type == TradeEventType.CompletionConfirmed && x.ActorUserId == userId))
-            return RedirectToAction(nameof(Details), new { id });
-
-        if (!await TradeInventoryIsAvailable(trade, cancellationToken))
-        {
-            TempData["Error"] = "Menjave ni mogoče zaključiti, ker predlagana količina ni več na voljo.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        trade.Events.Add(new TradeEvent { ActorUserId = userId, Type = TradeEventType.CompletionConfirmed });
-        var otherId = OtherUserId(trade, userId);
-        var otherConfirmed = trade.Events.Any(x => x.Type == TradeEventType.CompletionConfirmed && x.ActorUserId == otherId);
-
-        if (!otherConfirmed)
-        {
-            await db.SaveChangesAsync(cancellationToken);
-            TempData["Success"] = "Tvoja potrditev je shranjena. Čakamo še drugega udeleženca.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         try
         {
+            var locked = await db.Trades
+                .Where(x => x.Id == id
+                            && x.Status == TradeStatus.Accepted
+                            && (x.ProposerUserId == userId || x.RecipientUserId == userId))
+                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Status, x => x.Status), cancellationToken);
+            if (locked == 0)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            db.ChangeTracker.Clear();
+            var trade = await LoadTrade(id, cancellationToken, tracking: true);
+            if (!IsParticipant(trade, userId) || trade!.Status != TradeStatus.Accepted)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return NotFound();
+            }
+
+            if (!await TradeInventoryIsAvailable(trade, cancellationToken))
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                TempData["Error"] = "Menjave ni mogoče zaključiti, ker predlagana količina ni več na voljo.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            if (!trade.Events.Any(x => x.Type == TradeEventType.CompletionConfirmed && x.ActorUserId == userId))
+                trade.Events.Add(new TradeEvent { ActorUserId = userId, Type = TradeEventType.CompletionConfirmed });
+
+            var otherId = OtherUserId(trade, userId);
+            var otherConfirmed = trade.Events.Any(x => x.Type == TradeEventType.CompletionConfirmed && x.ActorUserId == otherId);
+            if (!otherConfirmed)
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                TempData["Success"] = "Tvoja potrditev je shranjena. Čakamo še drugega udeleženca.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
             await ApplyCompletedTradeToInventory(trade, cancellationToken);
             trade.Status = TradeStatus.Completed;
             trade.Events.Add(new TradeEvent { ActorUserId = userId, Type = TradeEventType.Completed });
@@ -360,9 +376,10 @@ public sealed class TradesController(
         if (!IsParticipant(trade, userId) || trade!.Status != TradeStatus.Completed) return NotFound();
         if (trade.Ratings.Any(x => x.FromUserId == userId)) return RedirectToAction(nameof(Details), new { id = input.TradeId });
 
-        if (input.Stars is < 1 or > 5)
+        var comment = Clean(input.Comment);
+        if (input.Stars is < 1 or > 5 || (comment?.Length ?? 0) > 1000)
         {
-            TempData["Error"] = "Ocena mora biti med 1 in 5.";
+            TempData["Error"] = "Ocena mora biti med 1 in 5, komentar pa ima lahko največ 1000 znakov.";
             return RedirectToAction(nameof(Details), new { id = input.TradeId });
         }
 
@@ -371,7 +388,7 @@ public sealed class TradesController(
             FromUserId = userId,
             ToUserId = OtherUserId(trade, userId),
             Stars = input.Stars,
-            Comment = Clean(input.Comment)
+            Comment = comment
         });
         await db.SaveChangesAsync(cancellationToken);
         TempData["Success"] = "Ocena je shranjena.";
@@ -390,22 +407,32 @@ public sealed class TradesController(
             .Where(x => (x.UserId == userId || x.UserId == otherUserId) && x.Quantity > 0)
             .ToListAsync(cancellationToken);
 
-        var myWanted = inventories.Where(x => x.UserId == userId && x.State == InventoryState.Wanted).Select(x => x.CollectibleItemId).ToHashSet();
-        var theirWanted = inventories.Where(x => x.UserId == otherUserId && x.State == InventoryState.Wanted).Select(x => x.CollectibleItemId).ToHashSet();
-        var myHave = inventories.Where(x => x.UserId == userId && x.State == InventoryState.Have).ToDictionary(x => x.CollectibleItemId, x => x.Quantity);
-        var theirHave = inventories.Where(x => x.UserId == otherUserId && x.State == InventoryState.Have).ToDictionary(x => x.CollectibleItemId, x => x.Quantity);
+        var myWanted = inventories
+            .Where(x => x.UserId == userId && x.State == InventoryState.Wanted)
+            .ToDictionary(x => x.CollectibleItemId, x => x.Quantity);
+        var theirWanted = inventories
+            .Where(x => x.UserId == otherUserId && x.State == InventoryState.Wanted)
+            .ToDictionary(x => x.CollectibleItemId, x => x.Quantity);
+        var myHave = inventories
+            .Where(x => x.UserId == userId && x.State == InventoryState.Have)
+            .ToDictionary(x => x.CollectibleItemId, x => x.Quantity);
+        var theirHave = inventories
+            .Where(x => x.UserId == otherUserId && x.State == InventoryState.Have)
+            .ToDictionary(x => x.CollectibleItemId, x => x.Quantity);
 
         var mine = inventories
-            .Where(x => x.UserId == userId && x.State == InventoryState.ForTrade && theirWanted.Contains(x.CollectibleItemId))
+            .Where(x => x.UserId == userId && x.State == InventoryState.ForTrade && theirWanted.ContainsKey(x.CollectibleItemId))
             .Where(x => myHave.TryGetValue(x.CollectibleItemId, out var q) && q > 0)
-            .Select(x => ToOfferItem(x, Math.Min(x.Quantity, myHave[x.CollectibleItemId])))
+            .Select(x => ToOfferItem(x, Math.Min(Math.Min(x.Quantity, myHave[x.CollectibleItemId]), theirWanted[x.CollectibleItemId])))
+            .Where(x => x.MaxQuantity > 0)
             .OrderBy(x => x.CollectionTitle).ThenBy(x => x.Code)
             .ToList();
 
         var theirs = inventories
-            .Where(x => x.UserId == otherUserId && x.State == InventoryState.ForTrade && myWanted.Contains(x.CollectibleItemId))
+            .Where(x => x.UserId == otherUserId && x.State == InventoryState.ForTrade && myWanted.ContainsKey(x.CollectibleItemId))
             .Where(x => theirHave.TryGetValue(x.CollectibleItemId, out var q) && q > 0)
-            .Select(x => ToOfferItem(x, Math.Min(x.Quantity, theirHave[x.CollectibleItemId])))
+            .Select(x => ToOfferItem(x, Math.Min(Math.Min(x.Quantity, theirHave[x.CollectibleItemId]), myWanted[x.CollectibleItemId])))
+            .Where(x => x.MaxQuantity > 0)
             .OrderBy(x => x.CollectionTitle).ThenBy(x => x.Code)
             .ToList();
 
@@ -432,8 +459,8 @@ public sealed class TradesController(
 
     private void ApplySelections(TradeEditViewModel target, TradeEditViewModel posted)
     {
-        var myPosted = posted.MyItems.ToDictionary(x => x.ItemId);
-        var theirPosted = posted.TheirItems.ToDictionary(x => x.ItemId);
+        var myPosted = posted.MyItems.GroupBy(x => x.ItemId).ToDictionary(x => x.Key, x => x.First());
+        var theirPosted = posted.TheirItems.GroupBy(x => x.ItemId).ToDictionary(x => x.Key, x => x.First());
         foreach (var item in target.MyItems)
         {
             if (!myPosted.TryGetValue(item.ItemId, out var source)) continue;
@@ -481,8 +508,8 @@ public sealed class TradesController(
 
     private static void PreselectExistingOffer(TradeEditViewModel model, Trade trade, string userId, string otherId)
     {
-        var mine = trade.Lines.Where(x => x.FromUserId == userId).ToDictionary(x => x.CollectibleItemId);
-        var theirs = trade.Lines.Where(x => x.FromUserId == otherId).ToDictionary(x => x.CollectibleItemId);
+        var mine = trade.Lines.Where(x => x.FromUserId == userId).GroupBy(x => x.CollectibleItemId).ToDictionary(x => x.Key, x => x.First());
+        var theirs = trade.Lines.Where(x => x.FromUserId == otherId).GroupBy(x => x.CollectibleItemId).ToDictionary(x => x.Key, x => x.First());
         foreach (var item in model.MyItems)
             if (mine.TryGetValue(item.ItemId, out var line)) { item.Selected = true; item.Quantity = Math.Min(line.Quantity, item.MaxQuantity); }
         foreach (var item in model.TheirItems)
