@@ -90,6 +90,7 @@ public sealed class CollectionsController(
             Manufacturer = Clean(model.Manufacturer),
             Country = Clean(model.Country),
             Type = model.Type,
+            ShowItemImages = model.ShowItemImages,
             IsPublished = model.IsPublished,
             CreatedByUserId = userId
         };
@@ -145,6 +146,7 @@ public sealed class CollectionsController(
             Manufacturer = collection.Manufacturer,
             Country = collection.Country,
             Type = collection.Type,
+            ShowItemImages = collection.ShowItemImages,
             IsPublished = collection.IsPublished,
             CurrentCoverImagePath = collection.CoverImagePath,
             CurrentImages = collection.Images.OrderBy(x => x.SortOrder).ToList()
@@ -176,6 +178,7 @@ public sealed class CollectionsController(
         collection.Manufacturer = Clean(model.Manufacturer);
         collection.Country = Clean(model.Country);
         collection.Type = model.Type;
+        collection.ShowItemImages = model.ShowItemImages;
         collection.IsPublished = model.IsPublished;
         collection.UpdatedUtc = DateTime.UtcNow;
 
