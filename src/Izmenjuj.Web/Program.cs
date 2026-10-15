@@ -65,7 +65,7 @@ app.UseAuthorization();
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    await DatabaseBootstrap.InitializeAsync(db);
 }
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", app = "Izmenjuj.si" }));
