@@ -1,0 +1,170 @@
+@model TradeDetailsViewModel
+@{
+    ViewData["Title"] = $"Menjava z {Model.OtherDisplayName}";
+    var statusText = Model.Status switch
+    {
+        TradeStatus.Proposed => "Predlog v obravnavi",
+        TradeStatus.Accepted => "Sprejeto – čaka zaključek",
+        TradeStatus.Completed => "Zaključeno",
+        TradeStatus.Rejected => "Zavrnjeno",
+        TradeStatus.Cancelled => "Preklicano",
+        _ => Model.Status.ToString()
+    };
+}
+
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+@if (TempData["Error"] is string error) { <div class="notice trade-error">@error</div> }
+
+<section class="page-head trade-detail-head">
+    <div>
+        <div class="page-kicker">MENJAVA</div>
+        <h1>@Model.OtherDisplayName</h1>
+        <p>@if (!string.IsNullOrWhiteSpace(Model.OtherCity)) { <text>⌖ @Model.OtherCity · </text> }Začetek @Model.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</p>
+    </div>
+    <div class="trade-head-actions">
+        <span class="trade-status status-@Model.Status.ToString().ToLowerInvariant()">@statusText</span>
+        <a class="secondary button" asp-action="Index">Vse menjave</a>
+    </div>
+</section>
+
+@if (Model.Status == TradeStatus.Proposed)
+{
+    <section class="panel trade-action-bar">
+        <div>
+            <strong>@(Model.LastOfferActorUserId == Model.CurrentUserId ? "Predlog je poslan." : "Prejel si nov predlog.")</strong>
+            <p>@(Model.LastOfferActorUserId == Model.CurrentUserId ? "Čakamo odgovor drugega uporabnika." : "Predlog lahko sprejmeš, zavrneš ali spremeniš.")</p>
+        </div>
+        <div class="trade-action-buttons">
+            @if (Model.CanAccept)
+            {
+                <form asp-action="Accept" asp-route-id="@Model.Id" method="post"><button class="primary button" type="submit">Sprejmi</button></form>
+            }
+            @if (Model.CanCounter)
+            {
+                <a class="secondary button" asp-action="Counter" asp-route-id="@Model.Id">Protipredlog</a>
+            }
+            @if (Model.CanReject)
+            {
+                <form asp-action="Reject" asp-route-id="@Model.Id" method="post"><button class="trade-reject button" type="submit">Zavrni</button></form>
+            }
+            @if (Model.CanCancel)
+            {
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post"><button class="trade-reject button" type="submit">Prekliči predlog</button></form>
+            }
+        </div>
+    </section>
+}
+else if (Model.Status == TradeStatus.Accepted)
+{
+    <section class="panel trade-action-bar accepted-bar">
+        <div>
+            <strong>Predlog je sprejet.</strong>
+            <p>Ko je dejanska menjava opravljena, jo morata potrditi oba. Evidenca se spremeni šele po drugi potrditvi.</p>
+            <div class="completion-state">
+                <span class="@(Model.YouConfirmedCompletion ? "confirmed" : "pending")">Ti: @(Model.YouConfirmedCompletion ? "potrjeno" : "čaka")</span>
+                <span class="@(Model.OtherConfirmedCompletion ? "confirmed" : "pending")">@Model.OtherDisplayName: @(Model.OtherConfirmedCompletion ? "potrjeno" : "čaka")</span>
+            </div>
+        </div>
+        @if (Model.CanConfirmCompletion)
+        {
+            <form asp-action="ConfirmComplete" asp-route-id="@Model.Id" method="post"><button class="primary button" type="submit">Potrdi zaključek menjave</button></form>
+        }
+    </section>
+}
+
+<div class="trade-detail-grid">
+    <section class="panel trade-exchange-panel">
+        <header><h2>Dogovorjeni predmeti</h2><span>@Model.YouGive.Sum(x => x.Quantity) ⇄ @Model.YouReceive.Sum(x => x.Quantity)</span></header>
+        <div class="match-exchange-grid trade-final-exchange">
+            <section>
+                <div class="exchange-title give"><span>TI DAŠ</span><strong>@Model.YouGive.Sum(x => x.Quantity)</strong></div>
+                <div class="match-item-list">
+                    @foreach (var item in Model.YouGive)
+                    {
+                        <a class="match-item" asp-controller="Items" asp-action="Details" asp-route-id="@item.ItemId">
+                            <span class="match-thumb">@if (!string.IsNullOrWhiteSpace(item.PrimaryImagePath)) { <img src="@item.PrimaryImagePath" alt="@item.Name" /> } else { <i>↔</i> }</span>
+                            <span><b>@item.Code</b> @item.Name<small>@item.CollectionTitle@if (!string.IsNullOrWhiteSpace(item.Variant)) { <text> · @item.Variant</text> } · količina @item.Quantity</small></span>
+                        </a>
+                    }
+                </div>
+            </section>
+            <div class="exchange-arrow">⇄</div>
+            <section>
+                <div class="exchange-title receive"><span>TI DOBIŠ</span><strong>@Model.YouReceive.Sum(x => x.Quantity)</strong></div>
+                <div class="match-item-list">
+                    @foreach (var item in Model.YouReceive)
+                    {
+                        <a class="match-item" asp-controller="Items" asp-action="Details" asp-route-id="@item.ItemId">
+                            <span class="match-thumb">@if (!string.IsNullOrWhiteSpace(item.PrimaryImagePath)) { <img src="@item.PrimaryImagePath" alt="@item.Name" /> } else { <i>✓</i> }</span>
+                            <span><b>@item.Code</b> @item.Name<small>@item.CollectionTitle@if (!string.IsNullOrWhiteSpace(item.Variant)) { <text> · @item.Variant</text> } · količina @item.Quantity</small></span>
+                        </a>
+                    }
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <aside class="panel trade-timeline-panel">
+        <header><h2>Zgodovina</h2><span>@Model.Events.Count</span></header>
+        <div class="trade-timeline">
+            @foreach (var entry in Model.Events)
+            {
+                <div class="timeline-entry">
+                    <i></i>
+                    <div><strong>@entry.ActorName</strong> @entry.Text@if (!string.IsNullOrWhiteSpace(entry.Note)) { <p>@entry.Note</p> }<small>@entry.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</small></div>
+                </div>
+            }
+        </div>
+    </aside>
+</div>
+
+<section class="panel trade-chat-panel">
+    <header><h2>Zasebna sporočila</h2><span>@Model.Messages.Count</span></header>
+    <div class="trade-chat">
+        @if (Model.Messages.Count == 0)
+        {
+            <div class="trade-empty-inline">Sporočil še ni. Pogovor je viden samo udeležencema te menjave.</div>
+        }
+        else
+        {
+            @foreach (var message in Model.Messages)
+            {
+                <div class="trade-bubble @(message.SenderUserId == Model.CurrentUserId ? "mine" : "theirs")">
+                    <strong>@message.SenderName</strong>
+                    <p>@message.Body</p>
+                    <small>@message.SentUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</small>
+                </div>
+            }
+        }
+    </div>
+    <form class="trade-message-form" asp-action="Message" method="post">
+        <input type="hidden" name="TradeId" value="@Model.Id" />
+        <textarea name="Body" rows="3" maxlength="2000" required placeholder="Napiši zasebno sporočilo ..."></textarea>
+        <button class="primary button" type="submit">Pošlji</button>
+    </form>
+</section>
+
+@if (Model.Status == TradeStatus.Completed)
+{
+    <section class="panel trade-rating-panel">
+        <header><h2>Ocene menjave</h2><span>@Model.Ratings.Count / 2</span></header>
+        @if (Model.Ratings.Count > 0)
+        {
+            <div class="rating-list">
+                @foreach (var rating in Model.Ratings)
+                {
+                    <article><strong>@rating.FromDisplayName</strong><span class="rating-stars">@new string('★', rating.Stars)@new string('☆', 5 - rating.Stars)</span>@if (!string.IsNullOrWhiteSpace(rating.Comment)) { <p>@rating.Comment</p> }</article>
+                }
+            </div>
+        }
+        @if (Model.CanRate)
+        {
+            <form class="rating-form" asp-action="Rate" method="post">
+                <input type="hidden" name="TradeId" value="@Model.Id" />
+                <label><span>Ocena</span><select name="Stars"><option value="5">5 – Odlično</option><option value="4">4 – Zelo dobro</option><option value="3">3 – Dobro</option><option value="2">2 – Slabo</option><option value="1">1 – Zelo slabo</option></select></label>
+                <label><span>Komentar</span><textarea name="Comment" rows="3" maxlength="1000" placeholder="Neobvezno"></textarea></label>
+                <button class="primary button" type="submit">Shrani oceno</button>
+            </form>
+        }
+    </section>
+}
