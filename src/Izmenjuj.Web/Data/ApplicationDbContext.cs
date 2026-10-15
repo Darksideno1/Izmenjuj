@@ -48,6 +48,12 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             .HasForeignKey(x => x.TradeId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<TradeLine>()
+            .HasOne(x => x.Item)
+            .WithMany()
+            .HasForeignKey(x => x.CollectibleItemId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<TradeMessage>()
             .HasOne(x => x.Trade)
             .WithMany(x => x.Messages)
