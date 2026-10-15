@@ -1,0 +1,42 @@
+@model AdminReportsViewModel
+@{
+    ViewData["Title"] = "ADMIN – prijave";
+}
+
+@if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+@if (TempData["Error"] is string error) { <div class="notice trade-error">@error</div> }
+
+<section class="page-head">
+    <div><div class="page-kicker">ADMIN · MODERACIJA</div><h1>Prijave uporabnikov</h1><p>Pregled razlogov, povezane menjave in rezultat obravnave.</p></div>
+</section>
+
+<div class="admin-status-tabs">
+    <a class="@(Model.Status is null ? "active" : "")" asp-action="Reports">Vse</a>
+    <a class="@(Model.Status == UserReportStatus.Open ? "active" : "")" asp-action="Reports" asp-route-status="Open">Odprte</a>
+    <a class="@(Model.Status == UserReportStatus.Resolved ? "active" : "")" asp-action="Reports" asp-route-status="Resolved">Rešene</a>
+    <a class="@(Model.Status == UserReportStatus.Dismissed ? "active" : "")" asp-action="Reports" asp-route-status="Dismissed">Zavrnjene</a>
+</div>
+
+<div class="admin-report-list">
+    @foreach (var row in Model.Rows)
+    {
+        <article class="panel admin-report-card">
+            <header>
+                <div><span class="admin-pill status-@row.Status.ToString().ToLowerInvariant()">@row.Status</span><h2>@row.TargetName</h2><p>Prijavil: @row.ReporterName · @row.CreatedUtc.ToLocalTime().ToString("d. M. yyyy HH:mm")</p></div>
+                @if (row.TradeId.HasValue) { <a class="secondary button" asp-controller="Trades" asp-action="Details" asp-route-id="@row.TradeId">Odpri menjavo</a> }
+            </header>
+            <div class="admin-report-body"><strong>@row.Reason</strong>@if (!string.IsNullOrWhiteSpace(row.Details)) { <p>@row.Details</p> }</div>
+            @if (!string.IsNullOrWhiteSpace(row.ResolutionNote)) { <div class="admin-resolution"><b>Opomba ob obravnavi:</b> @row.ResolutionNote</div> }
+            @if (row.Status == UserReportStatus.Open)
+            {
+                <form class="admin-report-actions" asp-action="ResolveReport" method="post">
+                    <input type="hidden" name="Id" value="@row.Id" />
+                    <input name="Note" maxlength="1000" placeholder="Opomba ob obravnavi" />
+                    <button class="primary button" type="submit" name="Status" value="Resolved">Označi kot rešeno</button>
+                    <button class="secondary button" type="submit" name="Status" value="Dismissed">Zavrzi prijavo</button>
+                </form>
+            }
+        </article>
+    }
+    @if (Model.Rows.Count == 0) { <div class="empty-state"><strong>Ni prijav.</strong><p>V izbranem stanju trenutno ni uporabniških prijav.</p></div> }
+</div>
