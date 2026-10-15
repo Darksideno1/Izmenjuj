@@ -36,21 +36,24 @@ else
             <button class="primary button" type="submit">Shrani evidenco</button>
         </div>
 
-        <div class="inventory-grid">
+        <div class="inventory-grid @(Model.Collection.ShowItemImages ? "visual-inventory" : "compact-inventory")">
             @for (var i = 0; i < Model.Rows.Count; i++)
             {
                 <article class="inventory-item-card">
                     <input asp-for="Rows[i].ItemId" type="hidden" />
-                    <div class="inventory-item-media">
-                        @if (!string.IsNullOrWhiteSpace(Model.Rows[i].PrimaryImagePath))
-                        {
-                            <img src="@Model.Rows[i].PrimaryImagePath" alt="@Model.Rows[i].Name" />
-                        }
-                        else
-                        {
-                            <div class="item-placeholder">◇</div>
-                        }
-                    </div>
+                    @if (Model.Collection.ShowItemImages)
+                    {
+                        <div class="inventory-item-media">
+                            @if (!string.IsNullOrWhiteSpace(Model.Rows[i].PrimaryImagePath))
+                            {
+                                <img src="@Model.Rows[i].PrimaryImagePath" alt="@Model.Rows[i].Name" />
+                            }
+                            else
+                            {
+                                <div class="item-placeholder">@(Model.Rows[i].OfficialCode ?? Model.Rows[i].InternalCode)</div>
+                            }
+                        </div>
+                    }
                     <div class="inventory-item-name">
                         <span class="item-code">@(Model.Rows[i].OfficialCode ?? Model.Rows[i].InternalCode)</span>
                         <a asp-controller="Items" asp-action="Details" asp-route-id="@Model.Rows[i].ItemId">@Model.Rows[i].Name</a>
