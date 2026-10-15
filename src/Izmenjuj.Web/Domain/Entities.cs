@@ -16,6 +16,7 @@ public enum CollectionType { Stickers, Cards, Figurines, Other }
 public enum InventoryState { Have, Wanted, ForTrade }
 public enum TradeStatus { Draft, Proposed, Accepted, Completed, Rejected, Cancelled }
 public enum TradeEventType { Proposed, Countered, Accepted, Rejected, Cancelled, CompletionConfirmed, Completed }
+public enum UserReportStatus { Open, Resolved, Dismissed }
 
 public sealed class Collection
 {
@@ -137,4 +138,36 @@ public sealed class TradeRating
     [Range(1, 5)] public int Stars { get; set; }
     [MaxLength(1000)] public string? Comment { get; set; }
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class UserBlock
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    [MaxLength(450)] public required string BlockerUserId { get; set; }
+    [MaxLength(450)] public required string BlockedUserId { get; set; }
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class UserReport
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    [MaxLength(450)] public required string ReporterUserId { get; set; }
+    [MaxLength(450)] public required string TargetUserId { get; set; }
+    public Guid? TradeId { get; set; }
+    [MaxLength(120)] public required string Reason { get; set; }
+    [MaxLength(2000)] public string? Details { get; set; }
+    public UserReportStatus Status { get; set; } = UserReportStatus.Open;
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+    [MaxLength(450)] public string? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedUtc { get; set; }
+    [MaxLength(1000)] public string? ResolutionNote { get; set; }
+}
+
+public sealed class UserModeration
+{
+    [MaxLength(450)] public required string UserId { get; set; }
+    public bool IsSuspended { get; set; }
+    [MaxLength(1000)] public string? Note { get; set; }
+    public DateTime UpdatedUtc { get; set; } = DateTime.UtcNow;
+    [MaxLength(450)] public string? UpdatedByUserId { get; set; }
 }
