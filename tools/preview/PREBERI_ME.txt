@@ -1,0 +1,22 @@
+IZMENJUJ.SI - LOKALNI WINDOWS PREDOGLED
+
+Ta paket je namenjen samo preverjanju dejanskega izgleda in uporabniškega toka pred nakupom gostovanja.
+
+1. Razpakiraj ZIP v navadno mapo.
+2. Dvoklikni START_PREVIEW.bat.
+3. Ne zapri crnega okna, dokler pregledujes stran.
+4. Brskalnik se odpre na http://127.0.0.1:5080.
+
+DEMO PRIJAVA
+E-mail: demo@izmenjuj.local
+Geslo: Demo1234
+
+Demo uporabnik je tudi ADMIN, zato lahko pregleda vse glavne zaslone.
+
+Predogled uporablja lokalno SQLite datoteko in NE potrebuje MSSQL, IIS, Plesk, .NET SDK ali kupljenega gostovanja.
+Produkcijska aplikacija na Domenca.com bo se naprej uporabljala MSSQL 2022 in IIS.
+
+Ce med ogledom kaj spremenis in zelis nazaj ciste vzorcne podatke:
+- zapri START_PREVIEW okno,
+- zazeni RESET_PREVIEW.bat,
+- nato ponovno START_PREVIEW.bat.
