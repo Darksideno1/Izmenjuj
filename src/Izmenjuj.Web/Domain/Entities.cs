@@ -15,6 +15,7 @@ public sealed class ApplicationUser : IdentityUser
 public enum CollectionType { Stickers, Cards, Figurines, Other }
 public enum InventoryState { Have, Wanted, ForTrade }
 public enum TradeStatus { Draft, Proposed, Accepted, Completed, Rejected, Cancelled }
+public enum TradeEventType { Proposed, Countered, Accepted, Rejected, Cancelled, CompletionConfirmed, Completed }
 
 public sealed class Collection
 {
@@ -89,6 +90,9 @@ public sealed class Trade
     public TradeStatus Status { get; set; } = TradeStatus.Draft;
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     public List<TradeLine> Lines { get; set; } = [];
+    public List<TradeMessage> Messages { get; set; } = [];
+    public List<TradeEvent> Events { get; set; } = [];
+    public List<TradeRating> Ratings { get; set; } = [];
 }
 
 public sealed class TradeLine
@@ -100,4 +104,37 @@ public sealed class TradeLine
     public CollectibleItem Item { get; set; } = null!;
     public required string FromUserId { get; set; }
     public int Quantity { get; set; } = 1;
+}
+
+public sealed class TradeMessage
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid TradeId { get; set; }
+    public Trade Trade { get; set; } = null!;
+    [MaxLength(450)] public required string SenderUserId { get; set; }
+    [MaxLength(2000)] public required string Body { get; set; }
+    public DateTime SentUtc { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class TradeEvent
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid TradeId { get; set; }
+    public Trade Trade { get; set; } = null!;
+    [MaxLength(450)] public required string ActorUserId { get; set; }
+    public TradeEventType Type { get; set; }
+    [MaxLength(500)] public string? Note { get; set; }
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class TradeRating
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid TradeId { get; set; }
+    public Trade Trade { get; set; } = null!;
+    [MaxLength(450)] public required string FromUserId { get; set; }
+    [MaxLength(450)] public required string ToUserId { get; set; }
+    [Range(1, 5)] public int Stars { get; set; }
+    [MaxLength(1000)] public string? Comment { get; set; }
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 }
