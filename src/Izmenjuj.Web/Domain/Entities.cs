@@ -29,6 +29,7 @@ public sealed class Collection
     [MaxLength(80)] public string? Country { get; set; }
     public CollectionType Type { get; set; }
     public bool IsPublished { get; set; } = true;
+    public bool ShowItemImages { get; set; }
     [MaxLength(500)] public string? CoverImagePath { get; set; }
     [MaxLength(450)] public string? CreatedByUserId { get; set; }
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;

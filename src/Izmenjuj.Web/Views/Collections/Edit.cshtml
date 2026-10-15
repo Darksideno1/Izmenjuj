@@ -4,7 +4,7 @@
     ViewData["Title"] = isEdit ? "Uredi zbirko" : "Dodaj zbirko";
 }
 <section class="page-head">
-    <div><div class="page-kicker">@(isEdit ? "UREJANJE" : "NOVA ZBIRKA")</div><h1>@(isEdit ? "Uredi zbirko" : "Dodaj novo zbirko")</h1><p>Vnesi osnovne podatke, naslovnico in dodatne slike za lažjo prepoznavo.</p></div>
+    <div><div class="page-kicker">@(isEdit ? "UREJANJE" : "NOVA ZBIRKA")</div><h1>@(isEdit ? "Uredi zbirko" : "Dodaj novo zbirko")</h1><p>Vnesi osnovne podatke, naslovnico in način prikaza predmetov.</p></div>
 </section>
 <div class="form-card">
     <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" enctype="multipart/form-data" class="form-grid">
@@ -18,6 +18,11 @@
         <label><span asp-for="Manufacturer"></span><input asp-for="Manufacturer" /><small asp-validation-for="Manufacturer"></small></label>
         <label><span asp-for="Country"></span><input asp-for="Country" /><small asp-validation-for="Country"></small></label>
         <label class="full"><span asp-for="Description"></span><textarea asp-for="Description" rows="6" placeholder="Kaj zbirka vsebuje, kako jo prepoznamo, posebnosti ..."></textarea><small asp-validation-for="Description"></small></label>
+
+        <section class="upload-section display-choice full">
+            <label class="inline-check"><input asp-for="ShowItemImages" /> <span asp-for="ShowItemImages"></span></label>
+            <p>Vključi pri zbirkah, kjer je vizualna identifikacija pomembna (npr. figurice, posebne variante). Pri številčenih albumih jo lahko pustiš izklopljeno in dobiš hitrejši, kompaktnejši seznam.</p>
+        </section>
 
         <section class="upload-section full">
             <div><h2>Naslovna slika</h2><p>JPG, PNG ali WEBP, največ 6 MB.</p></div>

@@ -11,7 +11,7 @@
 <section class="collection-hero">
     <div class="detail-cover">
         @if (!string.IsNullOrWhiteSpace(Model.CoverImagePath)) { <img src="@Model.CoverImagePath" alt="@Model.Title" /> }
-        else { <div class="cover-placeholder large">↔</div> }
+        else { <div class="cover-placeholder large">@Model.Title.Substring(0, Math.Min(Model.Title.Length, 2)).ToUpperInvariant()</div> }
     </div>
     <div class="collection-summary">
         <div class="page-kicker">@Model.Type</div>
@@ -19,10 +19,11 @@
         @if (!string.IsNullOrWhiteSpace(Model.Subtitle)) { <h2>@Model.Subtitle</h2> }
         <p>@(Model.Description ?? "Opis zbirke še ni vpisan.")</p>
         <div class="meta-chips">
-            @if (Model.Year is not null) { <span>📅 @Model.Year</span> }
-            @if (!string.IsNullOrWhiteSpace(Model.Manufacturer)) { <span>🏷 @Model.Manufacturer</span> }
-            @if (!string.IsNullOrWhiteSpace(Model.Country)) { <span>🌍 @Model.Country</span> }
-            <span>▦ @Model.Items.Count predmetov</span>
+            @if (Model.Year is not null) { <span>@Model.Year</span> }
+            @if (!string.IsNullOrWhiteSpace(Model.Manufacturer)) { <span>@Model.Manufacturer</span> }
+            @if (!string.IsNullOrWhiteSpace(Model.Country)) { <span>@Model.Country</span> }
+            <span>@Model.Items.Count predmetov</span>
+            <span>@(Model.ShowItemImages ? "Slikovni prikaz" : "Kompaktni prikaz")</span>
         </div>
         <div class="hero-actions">
             @if (User.Identity?.IsAuthenticated == true)
@@ -61,7 +62,7 @@
     {
         <div class="empty-state compact-empty"><h3>Zbirka še nima predmetov</h3><p>Dodaj prve sličice, karte ali figurice. Predmeti brez uradne številke dobijo interno oznako samodejno.</p></div>
     }
-    else
+    else if (Model.ShowItemImages)
     {
         <div class="collectible-grid">
             @foreach (var item in orderedItems)
@@ -74,12 +75,31 @@
                         }
                         else
                         {
-                            <div class="item-placeholder">◇</div>
+                            <div class="item-placeholder">@(item.OfficialCode ?? item.InternalCode)</div>
                         }
                     </a>
                     <div class="collectible-copy">
                         <span class="item-code">@(item.OfficialCode ?? item.InternalCode)</span>
                         <a class="collectible-name" asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">@item.Name</a>
+                        @if (!string.IsNullOrWhiteSpace(item.Variant)) { <small>@item.Variant</small> }
+                    </div>
+                    @if (canEdit)
+                    {
+                        <a class="card-edit-link" asp-controller="Items" asp-action="Edit" asp-route-id="@item.Id">Uredi</a>
+                    }
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="compact-catalog">
+            @foreach (var item in orderedItems)
+            {
+                <article class="compact-item">
+                    <span class="compact-code">@(item.OfficialCode ?? item.InternalCode)</span>
+                    <div class="compact-item-main">
+                        <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">@item.Name</a>
                         @if (!string.IsNullOrWhiteSpace(item.Variant)) { <small>@item.Variant</small> }
                     </div>
                     @if (canEdit)
