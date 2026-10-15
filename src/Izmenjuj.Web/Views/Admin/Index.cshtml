@@ -15,7 +15,7 @@
     <a asp-action="Users"><small>Uporabniki</small><strong>@Model.Users</strong><span>upravljanje računov →</span></a>
     <a asp-action="Collections"><small>Zbirke</small><strong>@Model.Collections</strong><span>katalog in predmeti →</span></a>
     <a asp-action="Collections"><small>Predmeti</small><strong>@Model.Items</strong><span>urejanje vsebine →</span></a>
-    <a asp-controller="Trades" asp-action="Index"><small>Aktivne menjave</small><strong>@Model.ActiveTrades</strong><span>pregled uporabniških tokov →</span></a>
+    <a asp-action="Trades"><small>Aktivne menjave</small><strong>@Model.ActiveTrades</strong><span>read-only pregled →</span></a>
     <a asp-action="Reports" asp-route-status="Open"><small>Odprte prijave</small><strong>@Model.OpenReports</strong><span>moderiranje →</span></a>
     <a asp-action="Users"><small>Suspendirani</small><strong>@Model.SuspendedUsers</strong><span>pregled računov →</span></a>
 </section>
@@ -26,5 +26,6 @@
         <a asp-action="Collections"><b>▣ Zbirke in predmeti</b><span>Objava, urejanje, množični vnos in združevanje dvojnikov.</span></a>
         <a asp-action="Users"><b>◎ Uporabniki</b><span>Iskanje uporabnikov ter suspendiranje in ponovna aktivacija računov.</span></a>
         <a asp-action="Reports"><b>⚑ Prijave</b><span>Pregled prijav, povezava na menjavo ter razrešitev ali zavrnitev.</span></a>
+        <a asp-action="Trades"><b>⇄ Menjave</b><span>Read-only pregled predmetov, dogodkov in zasebnih sporočil za moderiranje.</span></a>
     </div>
 </section>
